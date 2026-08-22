@@ -18,15 +18,16 @@ Ordered. Don't skip ahead — later phases depend on the format set by Phase 2.
 Locked 2026-08-23 (`CONTEXT.md` §4.6, `_handoff/CHALLENGE_DESIGN.md` §5a). Nothing in Phase 2 starts
 until this is done — Chapter 1 must be authored against a fixed story target, not improvised.
 
-- [ ] `_handoff/SCENARIOS.md` — the bible:
-  - [ ] **The dorn timeline.** Who he was, what he actually did, with whom, why, and on what dates.
-        This is the spine Chapter 15 assembles; it does not exist yet in any file.
-  - [ ] Cast continuity sheet — where each of rhea / cass / dorn / ops-bot / the captain is, and
-        what they know, at each chapter. A character cannot know in ch3 what they learn in ch9.
+- [x] `_handoff/SCENARIOS.md` — the bible, spine written:
+  - [x] **The dorn timeline** — 25 dated events, 2176-02-11 to course-present 2187-06-14
+  - [x] Cast continuity sheet — what each of rhea / cass / dorn / ops-bot / the captain knows, and
+        when. rhea is the arc's load-bearing red herring; the captain is the answer and is never
+        written as a villain
+  - [x] Trace reconciliation — all 16 traces bound to a dated event with a reason, plus the
+        two-hands split (dorn's toolkit vs the adjustment) the capstone tests
+  - [x] Names and constants table so sixteen chapters agree on dates, paths and file names
   - [ ] All 16 chapter incidents written to the 5-beat structure in `CHALLENGE_DESIGN.md` §1A
         (page → constraint → dig with a red herring → fix/find → debrief)
-  - [ ] Reconcile the 16 sabotage traces (§4) against the timeline — each must be something dorn
-        plausibly did, on a date that fits, for a reason the capstone can state
   - [ ] Chained-CTF outlines for chapters 5–15; roleplay scene outlines for chapters 6–15
 - [ ] Per-chapter `NN-chapter-slug/story.md` for all 16 chapters — scene text per lesson, expanding
       the bible without contradicting it
