@@ -110,6 +110,9 @@ chmod 755 check-sample-integrity.sh
 # The long find is genuine housekeeping. The statoin/station pair is a typo he
 # corrected. Neither leads anywhere; both are meant to look like they might.
 
+# rm first: the file is left mode 444, and re-seeding must not depend on the
+# harness running setup.sh as root.
+rm -f dorn-bash-history
 cat > dorn-bash-history <<'EOF'
 #6860256000
 cd /var/log/station

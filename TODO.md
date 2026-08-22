@@ -48,17 +48,36 @@ is now authored against a fixed story target rather than improvised.
       them — they were guesses, they invited trimming to a number, and `CONTEXT.md` §4.5 makes ~50
       a floor
 
-## Phase 2 — Chapter 1 as the format exemplar
+## Phase 2 — Chapter 1 as the format exemplar — **DONE, awaiting review**
 
-- [ ] Chapter `README.md` — incident briefing, objectives, prereqs, flag count
-- [ ] 7 lessons × 6 files, ~45 exercises
-- [ ] `07-incident-01` built to `_handoff/CHALLENGE_DESIGN.md`: symptom-first briefing, a
-      constraint, a red herring, a graded debrief
-- [ ] Plant the Chapter 1 sabotage-arc trace (a truncated command in history)
-- [ ] Register the flag hash in `container/flags.tsv`
-- [ ] Run every `setup.sh` in the container; verify idempotency under `kestrel reset`
-- [ ] Solve the chapter myself from a clean lab before shipping it
+- [x] Chapter `README.md` — incident briefing, objectives, prereqs, flag count
+- [x] 7 lessons × 6 files — **124 exercises**, well over the ~45 planned (the syllabus estimate was
+      the thing that was wrong; see `CONTEXT.md` §4.5)
+- [x] `07-incident-01` built to `_handoff/CHALLENGE_DESIGN.md`: symptom-first briefing, a
+      constraint (the history file is evidence, mode 444, checked), two red herrings, a graded
+      debrief
+- [x] Plant the Chapter 1 sabotage-arc trace (a truncated command in history), mtime set to the
+      `SCENARIOS.md` §2 date
+- [x] Register the flag hash in `container/flags.tsv` — `01/07`
+- [x] Run every `setup.sh` in the container; idempotent under re-seed, as root **and** as `cadet`
+- [x] Solve the chapter myself from a clean lab before shipping it — flag derived and submitted,
+      wrong value rejected, `grep -r` for the flag words finds nothing
 - [ ] **Stop and get the user's review** — this sets the format for the remaining 14 chapters
+
+### What the review should look at
+
+1. **Volume.** 124 exercises against a planned ~45. Per `CONTEXT.md` §4.5 that is a floor, not a
+   problem — but confirm the shape is wanted before 14 more chapters inherit it.
+2. **The six-tier split per lesson.** Every lesson carries Warmup / Core / Experiment / Stretch /
+   Dig. Experiment exercises require a written prediction *before* running, and the rubrics fail a
+   missing prediction while passing a wrong one.
+3. **Rubrics that grade reasoning over results.** 01/07 exercise 5 is the test case: the flag is
+   obtainable by trying all three candidate files, so the rubric grades the justification and marks
+   brute force as not meeting that exercise.
+4. **Verification against the image.** Three drafted claims were wrong and were rewritten around
+   observed behaviour rather than shipped. Confirm this is the standard for the rest.
+5. **Arc discipline.** `help.md` and `validation.md` in 01/07 both forbid steering the student
+   toward a sinister reading of `history -c`, and reward "the evidence does not distinguish".
 
 ## Phase 3 — Chapters 2–15
 

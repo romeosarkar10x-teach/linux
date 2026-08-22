@@ -1,7 +1,7 @@
 # DONE.md — What exists so far
 
-Status: **planning complete. Phase 1 complete — skeleton, all shared docs, working container,
-Chapter 0 written in full.** Chapters 1–15 are stubs.
+Status: **planning complete. Phase 1 and Phase 2 complete — skeleton, all shared docs, working
+container, scenario bank, and Chapters 0 and 1 written in full.** Chapters 2–15 are stubs.
 
 ## Completed
 
@@ -93,9 +93,36 @@ chapter carrying a page per lesson.
 
 **50 exercises in Chapter 0.** One flag registered: `00/04`, hash in `container/flags.tsv`.
 
+**Chapter 1 complete** (Phase 2) — 7 lessons x 6 files, no stubs, chapter README written:
+
+| Lesson | Exercises |
+|---|---|
+| `01-terminal-vs-shell-vs-tty` | 15 |
+| `02-shells-on-the-box` | 17 |
+| `03-command-anatomy` | 19 |
+| `04-variables` | 20 |
+| `05-readline` | 18 |
+| `06-history` | 21 |
+| `07-incident-01` | 14, incl. the chapter flag |
+
+**124 exercises in Chapter 1.** One flag registered: `01/07`, hash in `container/flags.tsv`.
+
+Verified, not just written:
+- all 7 `setup.sh` run under `kestrel seed` from a clean `/labs`, and are idempotent — including
+  re-running as `cadet`, not only as root
+- every factual claim in the notes checked against the running image; three first-draft claims were
+  wrong and were rewritten around what the image actually does (`bash --posix` does not disable
+  `[[`; `bash -l` does not put a dash in `$0`; every path in this image's `/etc/shells` exists)
+- the incident solved from a clean lab: flag derived, `kestrel flags submit` accepts it and rejects
+  a wrong value
+- flag is not greppable — `grep -r he_never_finished_typing /labs` returns nothing
+- `dorn-bash-history` mtime set to the `SCENARIOS.md` timeline date, mode 444
+
+Chapter 1 sets the format for Chapters 2–15. **Stop here for the user's review before continuing.**
+
 ## Not started
 
-Chapters 1–15 — 96 lessons, all stubs. `docs/CHEATSHEET.md` content. See `TODO.md`.
+Chapters 2–15 — 89 lessons, all stubs. `docs/CHEATSHEET.md` content. See `TODO.md`.
 
 ## Current tree
 
