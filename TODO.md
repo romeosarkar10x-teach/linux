@@ -26,8 +26,11 @@ until this is done — Chapter 1 must be authored against a fixed story target, 
   - [x] Trace reconciliation — all 16 traces bound to a dated event with a reason, plus the
         two-hands split (dorn's toolkit vs the adjustment) the capstone tests
   - [x] Names and constants table so sixteen chapters agree on dates, paths and file names
-  - [ ] All 16 chapter incidents written to the 5-beat structure in `CHALLENGE_DESIGN.md` §1A
-        (page → constraint → dig with a red herring → fix/find → debrief)
+  - [x] All 16 chapter incidents written to the 5-beat structure in `CHALLENGE_DESIGN.md` §1A
+        (page → constraint → dig with a red herring → fix/find → debrief), each bound to its
+        trace, its hand, its tool ceiling and a fixed flag text
+  - [ ] **Decide:** Chapter 14 has no `NN-incident-NN` lesson (4 lessons, ends at `04-checksums`).
+        Currently written as folding into `04-checksums`. Either accept that or add a 5th lesson.
   - [ ] Chained-CTF outlines for chapters 5–15; roleplay scene outlines for chapters 6–15
 - [ ] Per-chapter `NN-chapter-slug/story.md` for all 16 chapters — scene text per lesson, expanding
       the bible without contradicting it

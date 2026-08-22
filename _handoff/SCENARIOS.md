@@ -232,10 +232,363 @@ Fixed here so sixteen chapters agree. An authoring agent takes these verbatim.
 
 ## 6. Still to write
 
-Tracked in `TODO.md` Phase 1.75. This file currently holds the spine; the incidents are outlines
-in `_handoff/STORY.md` and are not yet written to depth.
+Tracked in `TODO.md` Phase 1.75.
 
-- [ ] All 16 chapter incidents to the 5-beat structure (`CHALLENGE_DESIGN.md` §1A)
+- [x] All 16 chapter incidents to the 5-beat structure (`CHALLENGE_DESIGN.md` §1A) — §7 below
+- [x] Flag texts fixed for all 16 chapters — inline in §7
 - [ ] Chained-CTF outlines, chapters 5–15
 - [ ] Roleplay scene outlines, chapters 6–15
 - [ ] Per-lesson page text → the per-chapter `story.md` files
+
+Two chapters have no `NN-incident-NN` lesson. Chapter 10 folds its incident into `08-special-bits`,
+which the syllabus already describes as "CTF: find the setuid backdoor" — intended, no action.
+Chapter 14 folds into `04-checksums` by default but **needs a decision** (§7).
+
+---
+
+## 7. The sixteen incidents
+
+Each written to the 5-beat structure in `CHALLENGE_DESIGN.md` §1A: **page → constraint → dig →
+fix/find → debrief.** The page states a symptom and never a cause. Every dig carries at least one
+red herring.
+
+**Dependency rule** (`AGENTS.md` rule 1): an incident may use only tools introduced in its own
+chapter or earlier. The "Tools" line on each is the ceiling, not a suggestion.
+
+**Flag texts are fixed here.** They are written into `solutions.md` at authoring time and their
+salted hashes into `container/flags.tsv`. Do not improvise replacements — several are callbacks.
+
+> **Open structural issue.** Chapter 14 is four lessons and has no `NN-incident-NN` lesson, unlike
+> every other chapter. Its incident is written below as folding into `04-checksums`, whose syllabus
+> entry already says "tamper-detection exercise". Either that is fine, or Chapter 14 gains a fifth
+> lesson. **Needs a decision before Phase 3 reaches it.**
+
+---
+
+### Ch 1 — `07-incident-01` · The command he didn't finish
+**Trace:** 1 · **Hand:** dorn · **Flag:** `KESTREL{he_never_finished_typing}`
+**Tools:** `history`, `!!`, `!$`, `!n`, Ctrl-R, `HISTSIZE`, `HISTCONTROL`, variables, `type`
+
+- **Page.** Your predecessor's account still has a shell history. The last line in it stops in the
+  middle of a word. Three weeks and nobody has looked.
+- **Constraint.** The history file is the only source. It is not to be edited — you may read it and
+  copy from it, and the validator checks it is unmodified. (Diegetic reason: it is the only record
+  of a departed employee's account, and you don't get to be the second person to alter it.)
+- **Dig.** The truncated line is the tail of a verification run against a data file. Two other
+  lines nearby look more interesting and are not — one is a long `find` that is genuinely just
+  housekeeping (**red herring**), one is a typo he corrected on the next line. The student needs
+  the *shape* of the truncated command, not its output.
+- **Find.** Reconstructing the fragment and running the completed command against the file it names
+  prints the flag.
+- **Debrief.** Three sentences: what the fragment was doing, how you knew where it was cut, and why
+  the last line of a history file is often incomplete.
+
+**Continuity:** 2187-05-24, 04:12. He was clearing his own history when the session ended. Nothing
+in this lesson may state that he was hiding anything — at Chapter 1 it reads as a tired person who
+got disconnected.
+
+---
+
+### Ch 2 — `07-incident-02` · The stowaway
+**Trace:** 2 · **Hand:** dorn · **Flag:** `KESTREL{a_name_you_cannot_type}`
+**Tools:** `ls -a -l -d`, `cd -`, `stat`, `file`, `tree`, `du -sh`, `--` end-of-options, `/proc`
+
+- **Page.** Disk accounting says a directory holds forty megabytes. `ls` says it holds nothing.
+- **Constraint.** No searching tools. `find` and `grep` are Chapter 6; this one is solved by
+  looking properly, which is the point.
+- **Dig.** A dotfile-hiding directory whose name also contains a space and a trailing character
+  that makes naive `cd` fail. Leads: `du` disagreeing with `ls`, `ls -a` showing a name that looks
+  like an artefact of the terminal, `stat` proving it is real. **Red herring:** a genuinely empty
+  `.cache` directory next to it, which explains nothing and is very tempting.
+- **Find.** Entering the directory correctly — quoting or `--` or tab completion — and reading the
+  file inside.
+- **Debrief.** Why `ls` hid it, why `du` didn't, and one sentence on what a filename actually is.
+
+**Continuity:** 2187-05-15. This is dorn's audit directory, and the student is not told so. It
+contains notes they cannot yet interpret. Plant them; do not explain them.
+
+---
+
+### Ch 3 — `06-incident-03` · The maintenance-deck maze
+**Trace:** 3 · **Hand:** dorn · **Flag:** `KESTREL{the_link_outlived_the_target}`
+**Tools:** the 7 file types, `ls -i`, `stat`, `ln`, `ln -s`, `readlink -f`, `touch -t`, `find -newer`
+
+- **Page.** Four links in the maintenance tree. Three go somewhere. One has been pointing at
+  nothing since before you arrived, and nobody noticed because nothing that runs depends on it.
+- **Constraint.** You may not create, delete or repair any link until you can say, in writing,
+  where each one currently points.
+- **Dig.** A chain: symlink → symlink → hard link → the file. One arm of the chain dangles into a
+  path that no longer exists. **Red herring:** two files that appear to be copies and are actually
+  hard links to one inode — noticing that is a real finding, but it is not this finding.
+- **Find.** Following the live chain to the target file; the flag is in it. The dangling arm's
+  *target path* is itself the interesting artefact and gets recorded in the debrief.
+- **Debrief.** What the dangling link pointed at, why a symlink can outlive its target, and how you
+  told the hard links from the copies.
+
+**Continuity:** the dead target names the engineering mount that went away after dorn did
+(2187-05-2x). By Chapter 15 that path name matters. Here it is just a broken link.
+
+---
+
+### Ch 4 — `05-incident-04` · Deleted, not moved
+**Trace:** 4 · **Hand:** dorn · **Flag:** `KESTREL{deleted_not_moved}`
+**Tools:** `cat`, `nl`, `head`, `tail`, `less`, `mkdir -p`, brace expansion, `cp`, `mv`, `rm`, `mktemp`
+
+- **Page.** There is a manifest. There is no tree. Rebuild what the manifest describes.
+- **Constraint.** Build it with brace expansion and `mkdir -p`, not with forty `mkdir` calls. The
+  validator counts commands; a student who brute-forces it passes with notes, not clean.
+- **Dig.** The manifest lists paths, sizes and a one-line note per file. Most reconstruct cleanly.
+  Two entries describe files that cannot both exist as written — same path, different sizes,
+  recorded four minutes apart. **Red herring:** a `.bak` of the manifest that is subtly *older* and
+  disagrees; students who trust it rebuild the wrong tree and the flag doesn't appear.
+- **Find.** A correctly rebuilt tree; the flag is assembled from the notes column in manifest order.
+- **Debrief.** What the manifest was for, what the four-minute duplicate means, and why "deleted"
+  and "moved" leave different evidence.
+
+**Continuity:** 2187-05-17 (written) and 2187-05-2x (source wiped). The duplicate entry is dorn
+re-taking a file after the first copy came out wrong.
+
+---
+
+### Ch 5 — `05-incident-05` · Named to survive the sweep
+**Trace:** 5 · **Hand:** dorn · **Flag:** `KESTREL{named_to_survive_the_sweep}`
+**Tools:** globs, `shopt dotglob nullglob globstar`, brace expansion, quoting, IFS, `set -x`
+
+- **Page.** Housekeeping ran a fortnight ago and removed everything matching its pattern. Some
+  files are still here. They were not missed by accident.
+- **Constraint.** Select exactly the surviving set with a single glob. No `find`, no loops, no
+  listing filenames by hand.
+- **Dig.** The survivors are named to fall outside a plausible cleanup pattern — leading dot, a
+  trailing tilde, an embedded space, a name beginning with a dash. **Red herring:** two files that
+  look adversarial and are just badly named by a human in a hurry. The glob must include the
+  deliberate ones and exclude those.
+- **Find.** The correct glob prints the file set; concatenating them in glob order gives the flag.
+- **Debrief.** Which naming trick defeats which pattern, why `-` at the start of a name is a
+  different problem from a space, and what `nullglob` would have changed.
+
+**Continuity:** 2187-06-01, the housekeeping run. The student is meant to conclude "somebody chose
+these names" and nothing more.
+
+---
+
+### Ch 6 — `07-incident-06` · The gap in the record
+**Trace:** 6 · **Hand:** the adjustment · **Flag:** `KESTREL{the_gap_is_the_message}`
+**Tools:** `grep` and flags, BRE/ERE, `find` basics and advanced, `-exec`, `-print0`, `locate`
+
+- **Page.** cass says the overnight logs "look fine." A run log in the engineering tree numbers its
+  own entries. The numbers do not run consecutively.
+- **Constraint.** Chapter 6 is the first chapter where the arc becomes *noticeable*
+  (`CHALLENGE_DESIGN.md` §4) — so this incident must be solvable without any arc knowledge, and
+  must leave a student who notices with something real. Both, not either.
+- **Dig.** Multi-flag, per the syllabus. Locate the run log among many; find the sequence gap;
+  find what else in the tree was written in the same minutes as the missing entries. **Red
+  herring:** a second log with a genuine gap caused by a rotation, which is boring and correct.
+- **Find.** The flag is in a file that was written during the gap and is the only thing in the tree
+  timestamped there.
+- **Debrief.** How you proved the gap wasn't rotation, what was happening in those minutes, and one
+  sentence on why numbered records survive deletion better than unnumbered ones.
+
+**Continuity:** 2187-05-22. Whoever removed the lines didn't know the records were numbered. Do not
+say who. Nobody in-story knows.
+
+---
+
+### Ch 7 — `08-incident-07` · One login, fourteen months ago
+**Trace:** 7 · **Hand:** the adjustment · **Flag:** `KESTREL{eng_svc_logged_in_once}`
+**Tools:** `sort`, `uniq -c`, `cut`, `paste`, `column`, `tr`, `sed`, `awk`, `tee`, `xargs`
+
+- **Page.** The captain wants the access log as a ranked report by account. Top talkers, counts,
+  readable. By the end of the shift.
+- **Constraint.** One pipeline, built left to right, inspected at each stage — the method taught in
+  `07-building-a-pipeline`. The report goes to a file *and* to the terminal, which is what `tee` is
+  for.
+- **Dig.** The ranking is the exercise. The finding is in its tail: an account with a count of
+  exactly one, from fourteen months ago, that appears nowhere in `/etc/passwd`. **Red herring:**
+  `ops-bot` dominates the ranking so completely that students stop reading at the top. The report is
+  ranked descending; the answer is at the bottom.
+- **Find.** Isolating that account's single entry; the flag is built from the fields of that line.
+- **Debrief.** Your pipeline, stage by stage, plus: which account has no business existing, and how
+  a count of one is more suspicious than a count of forty thousand.
+
+**Continuity:** 2187-01-18, `eng-svc`. It predates dorn noticing anything, which is the point — the
+student meets the adjustment's fingerprint before they meet dorn's investigation.
+
+---
+
+### Ch 8 — `06-incident-08` · It has been complaining for months
+**Trace:** 8 · **Hand:** the adjustment · **Flag:** `KESTREL{it_complained_for_months}`
+**Tools:** fd 0/1/2, `>`, `>>`, `2>`, `2>&1`, `&>`, heredocs, `<<<`, pipes, `$?`, `&&`, `||`
+
+- **Page.** A diagnostic tool prints a clean report and exits zero. Run it and it looks healthy.
+  Somebody has arranged for it to look healthy.
+- **Constraint.** Capture its stderr without losing a byte of its stdout, and do it in one
+  invocation. The order of redirections matters and the lesson taught why.
+- **Dig.** The tool writes complaints to fd 2, and its wrapper sends fd 2 somewhere that gets
+  recycled. Leads: exit code zero despite the complaints, a wrapper script with the redirection in
+  it, the recycled path. **Red herring:** a log file with the tool's name on it, which contains only
+  stdout and looks authoritative.
+- **Find.** Separating the streams reveals a repeated complaint. The flag is in the complaint text,
+  which the student has to run the tool to see — it exists in no file.
+- **Debrief.** Why `2>&1 >file` and `>file 2>&1` differ, what the tool was complaining about, and
+  why exit zero was honest rather than a lie.
+
+**Continuity:** 2187-05-13 and 05-14 — dorn's route into the whole thing. The complaint is the clamp
+announcing itself, in the dullest possible words, for fourteen months, to nobody.
+
+---
+
+### Ch 9 — `07-incident-09` · Nobody started it
+**Trace:** 9 · **Hand:** the adjustment · **Flag:** `KESTREL{ops_bot_never_slept}`
+**Tools:** `ps -ef`, `ps aux`, `pstree`, `top`/`htop`, signals, `kill`/`pkill`/`pgrep`, job control,
+`/proc/<pid>/cmdline|environ|fd`, `lsof`, `nice`
+
+- **Page.** Station CPU is at a permanent low simmer and rhea wants to know why her jobs are slow.
+  Something under `ops-bot` has been running for a long time.
+- **Constraint.** Identify it and trace it fully *before* signalling it. Killing it first is a
+  fail — the process's environment and open files are the evidence, and they vanish with it.
+- **Dig.** `/proc/<pid>/environ` carries how it was configured; `/proc/<pid>/fd` shows what it has
+  open, including a file that has been deleted and is still held. **Red herring:** an `htop` view
+  where a short-lived process spikes higher and is completely innocent.
+- **Find.** The flag is in the process's environment. It cannot be found from the filesystem, which
+  is the whole design of this one.
+- **Debrief.** Its pid, ppid and what that parentage means; what it has open; why you looked before
+  you killed; and TERM versus KILL for this specific process.
+
+**Continuity:** started 2186-10-06, never stopped. Nothing scheduled it — say so explicitly if a
+student asks, because their instinct will be cron and cron is out of scope.
+
+---
+
+### Ch 10 — `08-special-bits` · The helper he shouldn't have built
+**Trace:** 10 · **Hand:** dorn · **Flag:** `KESTREL{he_needed_to_read_it}`
+**Tools:** `/etc/passwd`, `/etc/group`, `id`, `usermod -aG`, `useradd`, rwx and octal, `chmod`,
+`chown`, `umask`, `sudo`, `visudo`, setuid/setgid/sticky
+
+- **Page.** A permissions audit of the engineering tree. Also: there is a setuid binary in a place
+  setuid binaries do not belong, owned by an account whose holder left three weeks ago.
+- **Constraint.** rhea's data is not yours to read. You may fix the hole, and you may not use it to
+  read anything you weren't already entitled to — a rule the validator checks by asking what you
+  read, not just what you ran.
+- **Dig.** Finding it by permission bits rather than by name. What it actually does: reads and
+  hashes, nothing else — narrower than a backdoor and still a hole. **Red herring:** a legitimately
+  setgid directory that is supposed to be that way, and a student who "fixes" it breaks group
+  collaboration for the whole `engineering` group.
+- **Find.** Reading the binary's strings or running it within its intended scope yields the flag.
+- **Debrief.** What the bit does, why this specific binary is dangerous despite being narrow, what
+  you changed, and what would have been the correct way to get the access it was taking.
+
+**Continuity:** 2187-05-18, mtime exactly. This is the first artefact that is unambiguously
+deliberate, and Chapter 11 makes it undeniable.
+
+---
+
+### Ch 11 — `06-incident-10` · Hidden from his own shell
+**Trace:** 11 · **Hand:** dorn · **Flag:** `KESTREL{hidden_from_his_own_shell}`
+**Tools:** env vars, `export`, PATH, `which -a`, `hash`, startup files, aliases and functions,
+`\cmd`, `PS1`, `shopt`, `set -o`
+
+- **Page.** dorn's shell configuration does something one of yours does not. Two people running the
+  same command in the same directory see different things.
+- **Constraint.** Repair it without deleting the file, and without deleting the line — you have to
+  be able to explain what it did, and a deleted line explains nothing. The validator diffs.
+- **Dig.** A function shadowing a command, defined in a startup file that only runs in one of the
+  three shell modes taught in `03-startup-files`. Leads: `type` disagreeing with `which`, the same
+  command behaving differently in a login shell, a PATH entry that shouldn't be there. **Red
+  herring:** a genuinely useful alias further up the file that looks suspicious and is not.
+- **Find.** Bypassing the shadow (`\cmd`, or the absolute path) reveals what was being hidden. The
+  flag is in it.
+- **Debrief.** Which startup file, which shell mode, what the line hid, and why `\ls` and
+  `/usr/bin/ls` both work but for different reasons.
+
+**Continuity:** 2187-05-19. What it hides is the Chapter 2 directory. A student who connects those
+is doing exactly what Chapter 15 asks of them — and by design gets no acknowledgement here.
+
+---
+
+### Ch 12 — `09-incident-11` · The cleanup that isn't
+**Trace:** 12 · **Hand:** the adjustment · **Flag:** `KESTREL{cleanup_that_rewrites}`
+**Tools:** all of Chapter 12 — arguments, conditionals, loops, `case`, functions, arithmetic,
+`set -euo pipefail`, `trap`, `mktemp`, `shellcheck`, and `stationctl` from `08-ship-a-tool`
+
+- **Page.** There is a housekeeping script in the ops tree. It is named for cleaning up. Read it
+  before you run it.
+- **Constraint.** You are writing an auditing tool, not fixing the script. `stationctl audit` must
+  report what it found and exit non-zero when it finds it, and it must pass `shellcheck` clean.
+- **Dig.** The script deletes almost nothing. What it mostly does is rewrite values above a
+  threshold, in place, and log the run as a cleanup. **Red herring:** it *does* have a real cleanup
+  branch that works fine, and a student who reads only the first `case` arm finds nothing wrong.
+- **Find.** The flag is produced by running the student's own audit tool against the ops tree — it
+  exists nowhere until their script is correct, which is the point of the chapter.
+- **Debrief.** What the script claims to do, what it does, the one line that is the whole problem,
+  and what your audit tool would catch if somebody renamed the script tomorrow.
+
+**Continuity:** 2186-10-06. This is the adjustment itself, in source, readable. Chapter 12 is where
+the student can finally see it — and cannot yet prove what it means. That is Chapter 14's job.
+
+---
+
+### Ch 13 — `06-incident-12` · A repository nobody added
+**Trace:** 13 · **Hand:** dorn · **Flag:** `KESTREL{a_repo_nobody_added}`
+**Tools:** `apt`, `dpkg -l/-L/-S`, sources, `man` sections, `apropos`, `tldr`, `nano`/`vim`
+
+- **Page.** A tool you need is not installed. Also, something on this station is installed that did
+  not come from anywhere the station configures.
+- **Constraint.** Find out where the stray package came from *before* installing anything new, so
+  the "before" state is recorded. (`kestrel reset` restores the lab, so this is safe to get wrong.)
+- **Dig.** `dpkg -l` against the configured sources; the stray package's files via `dpkg -L`; the
+  source entry that was added by hand. **Red herring:** a package that looks exotic and is a
+  perfectly ordinary dependency of something the image installs.
+- **Find.** Installing the tool the incident needs, then using it to read a file that is not
+  readable without it. The flag is in that file.
+- **Debrief.** Which package is stray, where it came from, what it does, and why an unlisted
+  repository is a supply-chain problem and not just untidiness.
+
+**Continuity:** 2187-05-16. dorn added the repo to get an archive-diff tool, and left it configured
+because he expected to be back on Monday.
+
+---
+
+### Ch 14 — folded into `04-checksums` · The manifest says otherwise
+**Trace:** 14 · **Hand:** both · **Flag:** `KESTREL{manifest_says_otherwise}`
+**Tools:** `tar`, `gzip`/`zip`, `zcat`, `zgrep`, `df`, `du`, `ncdu`, `sha256sum`, `md5sum`, `-c`
+
+- **Page.** The archive checks out against its own checksum file. It does not check out against the
+  manifest somebody wrote by hand at the time. Both cannot be right.
+- **Constraint.** The archive is not to be modified. Extract to a scratch directory, verify there,
+  and leave the original bit-identical — verified by hashing it before and after.
+- **Dig.** `sha256sum -c` passes against the shipped checksums and fails against the manifest, for
+  a subset of files. The subset has a property. **Red herring:** the disk is also genuinely full,
+  and a deleted-but-open file is holding the space (`du`/`df` disagreement) — a real Chapter 14
+  finding, and unrelated to the tamper.
+- **Find.** Identifying which files disagree and what they have in common; the flag is derived from
+  that shared property.
+- **Debrief.** What passed, what failed, what the failing set has in common, and one sentence on why
+  a checksum file shipped alongside its own archive proves less than people think.
+
+**Continuity:** 2187-05-20 — dorn's proof, and the last artefact before the capstone. The subset
+that disagrees is exactly the days when the strain readings exceeded the clamp threshold. Do not
+state that here; Chapter 15 states it.
+
+---
+
+### Ch 15 — the capstone · The Kestrel Breach
+**Trace:** 15 · **Hand:** both · **Flag:** `KESTREL{calibration_matter}`
+**Tools:** everything. Five lessons: briefing, triage, forensics, remediation, report.
+
+- **Page.** Deck 3 recertifies in September. You have been on this station twenty-two days, you are
+  the only sysadmin, and you have found fourteen things that individually looked like neglect.
+- **Constraint.** The report is the deliverable. Every claim in it must name the artefact it rests
+  on. A conclusion the student cannot source is struck, however correct it happens to be.
+- **Dig.** Sorting fourteen artefacts into two hands (§2). The dates do the work: dorn's cluster
+  inside eleven days in May 2187; the adjustment's spread across fourteen months from October 2186.
+  **Red herring — the big one:** rhea. She owns the data, guards it aggressively, refused the
+  student access repeatedly, and is innocent. A student who indicts her has followed the evidence
+  badly, and the rubric says so without saying who is right.
+- **Find.** The flag is the euphemism, recoverable from the artefacts: what the adjustment was
+  called by the person who authorised it.
+- **Debrief.** The report itself, plus `stationctl` extended to re-run the checks that found it. The
+  five beats: what happened, when, who did what, what you changed, and what you would have needed
+  to catch it in October rather than in June.
+
+**Continuity:** the captain does not deny it, does not apologise, and explains the reasoning. The
+course does not tell the student what to conclude about that, and no file in the course may.
