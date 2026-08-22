@@ -110,3 +110,40 @@ Applied as: `_handoff/CHALLENGE_DESIGN.md` (Incident format, chained `STAGE{...}
 scenes, flag-planting rules, the 16-chapter sabotage arc) and `docs/GAMEMASTER_PROTOCOL.md` (a third
 agent mode where the agent plays a crew member — bound by the same never-give-the-answer rules).
 Build rule 7 in `AGENTS.md` now makes this mandatory per chapter.
+
+## Q12 — Exercise volume: the written count wins (2026-08-23)
+
+An audit reported Chapter 0's 50 written exercises against the syllabus's planned ~12, framing the
+gap as a problem. The user's correction:
+
+> "okay, forget about the planned. the written is the original one, and it's okay to increase. there
+> should be lots of exercises actually. this is great."
+
+Applied as `CONTEXT.md` §4.5: ~50/chapter is a **floor**, the `~630` total in `_handoff/SYLLABUS.md`
+is a stale estimate rather than a target, and where written and planned disagree the estimate gets
+updated — never the chapter trimmed.
+
+## Q13 — Story and roleplay: written up front, per lesson (2026-08-23)
+
+> "can you check that we have good stories / role play things inside? we can also create stories
+> separately, and integrate them! we can maybe create different story / role play for different set
+> of exercises."
+
+Audit found the machinery fully specified (`CHALLENGE_DESIGN.md`, `GAMEMASTER_PROTOCOL.md` with real
+character sheets, a 16-row incident table) but **no scenario content written anywhere** — every
+incident was a single table row, and the sabotage arc's 16 traces had no underlying timeline for
+Chapter 15 to assemble. Chapter 0 measured near story-free: 4 of 6 lesson readmes with zero cast or
+station references.
+
+Four decisions, taken by the user from a presented set of options:
+
+| # | Question | Decision |
+|---|---|---|
+| a | Where scenario content lives | **Both** — `_handoff/SCENARIOS.md` bible *and* per-chapter `story.md` |
+| b | Granularity | **Per lesson** — every lesson opens with an in-character page; incident stays the chapter finale |
+| c | Timing | **Whole bank up front**, before Chapter 1 is authored |
+| d | Chapter 0 | **Full rewrite in-story** — VM as quarters, container as workstation |
+
+Recorded in `CONTEXT.md` §4.6 (a–d) and `_handoff/CHALLENGE_DESIGN.md` §5a. On (d) the user chose
+the most immersive option; the guard against its known risk is written into §4.6(d) — no framing may
+obscure a literal install instruction, and where the two conflict the instruction wins.

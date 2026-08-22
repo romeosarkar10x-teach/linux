@@ -138,8 +138,37 @@ The user asked for more. Per chapter, on top of the tier minimums:
 - **≥ 1 roleplay** exercise from Chapter 6 onward
 - **≥ 1 sabotage-arc artifact**, findable but never required
 
-These are exercises, not extras: they count toward the ~50-per-chapter target and get full
-`help.md` / `validation.md` / `solutions.md` treatment like everything else.
+These are exercises, not extras: they get full `help.md` / `validation.md` / `solutions.md`
+treatment like everything else. ~50 per chapter is a **floor**, not a target — see `CONTEXT.md`
+§4.5. Never cut an exercise to hit a count.
+
+## 5a. Story surface — per lesson, not just per chapter
+
+Locked 2026-08-23. The four bullets above are the *challenge* floor; they are no longer the whole
+story surface. Every lesson opens with a **page**: a short in-character framing, two to four
+sentences, tying that lesson's exercises to a station situation.
+
+Rules for a lesson page:
+
+- **It frames, it does not teach.** The technical explanation follows it and owes it nothing. A
+  reader who skips the page must lose zero information needed to do the exercises.
+- **It states a situation, never a method.** "cass says the overnight logs are twice the size they
+  should be" — not "in this lesson you will learn `wc -l`."
+- **Continuity is checked against the bible**, `_handoff/SCENARIOS.md`. Cast behaviour, dates and
+  the state of the station must agree with it. The bible wins.
+- **Four sentences is the ceiling.** Past that it is crowding out the notes, which `§6` forbids.
+
+### Where scenario content lives
+
+| File | Holds | Authority |
+|---|---|---|
+| `_handoff/SCENARIOS.md` | dorn sabotage timeline, cast continuity, all 16 incidents in outline | continuity authority — chapters may not contradict it |
+| `NN-chapter-slug/story.md` | the scene text for that chapter's lessons and its incident | expands the bible, never overrides it |
+| `_handoff/STORY.md` | premise, cast, tone | unchanged; the bible builds on it |
+
+The bank is written **before Chapter 1**, not chapter by chapter. Reason: the sabotage arc in §4 is
+sixteen traces that Chapter 15 assembles into a single timeline. Authored piecemeal, trace 11 will
+contradict trace 4 and nobody finds out until the capstone.
 
 ## 6. What not to do
 
