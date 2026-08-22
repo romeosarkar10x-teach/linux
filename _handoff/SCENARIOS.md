@@ -240,9 +240,10 @@ Tracked in `TODO.md` Phase 1.75.
 - [ ] Roleplay scene outlines, chapters 6–15
 - [ ] Per-lesson page text → the per-chapter `story.md` files
 
-Two chapters have no `NN-incident-NN` lesson. Chapter 10 folds its incident into `08-special-bits`,
-which the syllabus already describes as "CTF: find the setuid backdoor" — intended, no action.
-Chapter 14 folds into `04-checksums` by default but **needs a decision** (§7).
+One chapter has no `NN-incident-NN` lesson: Chapter 10, which folds its incident into
+`08-special-bits` — the syllabus already describes that lesson as "CTF: find the setuid backdoor",
+so it is intended and needs no action. Chapter 14 was in the same position and **gained a fifth
+lesson**, `05-incident-13`, on 2026-08-23; it carries the arc's proof and had no finale.
 
 ---
 
@@ -548,28 +549,41 @@ because he expected to be back on Monday.
 
 ---
 
-### Ch 14 — folded into `04-checksums` · The manifest says otherwise
+### Ch 14 — `05-incident-13` · The manifest says otherwise
 **Trace:** 14 · **Hand:** both · **Flag:** `KESTREL{manifest_says_otherwise}`
 **Tools:** `tar`, `gzip`/`zip`, `zcat`, `zgrep`, `df`, `du`, `ncdu`, `sha256sum`, `md5sum`, `-c`
+
+Given its own lesson rather than folded into `04-checksums`. It is the only artefact belonging to
+both hands (§2), it is the arc's proof, and it sits immediately before the capstone — a chapter
+whose finale is a graded exercise inside a teaching lesson would be the one place the arc goes
+quiet right before it has to land.
 
 - **Page.** The archive checks out against its own checksum file. It does not check out against the
   manifest somebody wrote by hand at the time. Both cannot be right.
 - **Constraint.** The archive is not to be modified. Extract to a scratch directory, verify there,
-  and leave the original bit-identical — verified by hashing it before and after.
-- **Dig.** `sha256sum -c` passes against the shipped checksums and fails against the manifest, for
-  a subset of files. The subset has a property. **Red herring:** the disk is also genuinely full,
-  and a deleted-but-open file is holding the space (`du`/`df` disagreement) — a real Chapter 14
-  finding, and unrelated to the tamper.
-- **Find.** Identifying which files disagree and what they have in common; the flag is derived from
-  that shared property.
-- **Debrief.** What passed, what failed, what the failing set has in common, and one sentence on why
-  a checksum file shipped alongside its own archive proves less than people think.
+  and leave the original bit-identical — checked by hashing it before and after. (Diegetic reason:
+  it is the copy that goes groundside in September.)
+- **Dig.** `sha256sum -c` passes against the shipped checksums and fails against the manifest, for a
+  subset of files. The subset has a property, and finding the property is the exercise — the files
+  that disagree are the days the strain readings exceeded the clamp threshold. Leads: the two
+  verification results disagreeing, the manifest's mtime predating the archive's, the shape of the
+  failing set once sorted by date. **Red herrings:** a compression-format mismatch that looks like
+  corruption and is just `zcat` on the wrong file, and one manifest line with a genuine typo in its
+  hash — a human error in a document that is otherwise correct, which tempts students to dismiss
+  the whole manifest.
+- **Find.** Identifying the failing subset and what its members have in common. The flag is derived
+  from that shared property.
+- **Debrief.** What passed, what failed, what the failing set has in common, why the manifest is
+  more trustworthy than the checksum file despite being handwritten, and one sentence on why a
+  checksum file shipped alongside its own archive proves less than people think.
 
-**Continuity:** 2187-05-20 — dorn's proof, and the last artefact before the capstone. The subset
-that disagrees is exactly the days when the strain readings exceeded the clamp threshold. Do not
-state that here; Chapter 15 states it.
+**Continuity:** 2187-05-20 — dorn's proof, and the last artefact before the capstone. The student
+should be able to state *that* the failing set is date-correlated without yet knowing what clamped
+it. Chapter 15 supplies the why.
 
----
+**Note on the disk-full finding.** The deleted-but-open file holding disk space (`du`/`df`
+disagreement) belongs to `03-disk-usage`, not here. It is a genuine Chapter 14 surprise and it is
+unrelated to the tamper — keeping it in its own lesson stops this incident from having two answers.
 
 ### Ch 15 — the capstone · The Kestrel Breach
 **Trace:** 15 · **Hand:** both · **Flag:** `KESTREL{calibration_matter}`

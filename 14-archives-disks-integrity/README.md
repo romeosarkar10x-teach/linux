@@ -20,6 +20,7 @@ _TODO_
 - [`02-compression`](02-compression/readme.md) — _TODO_
 - [`03-disk-usage`](03-disk-usage/readme.md) — _TODO_
 - [`04-checksums`](04-checksums/readme.md) — _TODO_
+- [`05-incident-13`](05-incident-13/readme.md) — _TODO_
 
 ## Flags in this chapter
 
