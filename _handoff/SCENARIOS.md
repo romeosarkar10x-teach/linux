@@ -236,8 +236,8 @@ Tracked in `TODO.md` Phase 1.75.
 
 - [x] All 16 chapter incidents to the 5-beat structure (`CHALLENGE_DESIGN.md` §1A) — §7 below
 - [x] Flag texts fixed for all 16 chapters — inline in §7
-- [ ] Chained-CTF outlines, chapters 5–15
-- [ ] Roleplay scene outlines, chapters 6–15
+- [x] Chained-CTF outlines, chapters 5–15 — §8
+- [x] Roleplay scene outlines, chapters 6–15 — §9
 - [ ] Per-lesson page text → the per-chapter `story.md` files
 
 One chapter has no `NN-incident-NN` lesson: Chapter 10, which folds its incident into
@@ -606,3 +606,64 @@ unrelated to the tamper — keeping it in its own lesson stops this incident fro
 
 **Continuity:** the captain does not deny it, does not apologise, and explains the reasoning. The
 course does not tell the student what to conclude about that, and no file in the course may.
+
+---
+
+## 8. Chained CTFs — chapters 5 onward
+
+Rules from `CHALLENGE_DESIGN.md` §1B, restated because they get violated: **max four stages**,
+stage 1 solvable by anyone who read the notes, the cliff at stage 2 or 3, every stage fails
+**loudly**, intermediate tokens are `STAGE{...}` and never register with `kestrel flags`.
+
+Each chain uses a *different* skill per stage, so it audits the chapter rather than one lesson.
+Where a chain and the chapter's incident are the same lesson, the chain **is** the incident's dig.
+
+| Ch | Chain | Stage skills |
+|---|---|---|
+| 5 | glob selects a file set → its names spell an order → that order concatenates the survivors → flag | globs → brace expansion → quoting → IFS/word splitting |
+| 6 | `find` by mtime narrows to a day → `grep -c` finds the numbering gap → `grep -o` extracts what was written in the gap → flag | `find -mtime` → `grep -n/-c` → ERE + `-o` → `find -exec` |
+| 7 | rank accounts → the tail names a file → `cut`/`awk` pulls a field from it → `tr`/`sed` decodes it → flag | `sort`/`uniq -c` → `awk` fields → `cut`/`paste` → `tr`/`sed` |
+| 8 | run the tool, separate the streams → stderr names a path → the path is a herestring-fed command → its exit code selects one of two files → flag | `2>` split → `&>`/`tee` → heredoc/`<<<` → `$?` + `&&`/`||` |
+| 9 | find the process → `/proc/<pid>/fd` names a deleted file → recover it through the fd → its contents name a second process → flag in that one's environ | `ps`/`pgrep` → `/proc/fd` + `lsof` → reading through `/proc` → `/proc/environ` |
+| 10 | find files by permission bits → one is setgid and legitimate, one is not → the illegitimate one is readable only as a group you must join → flag | `find -perm` → octal decoding → `usermod -aG` + re-login → setuid semantics |
+| 11 | `type` disagrees with `which` → the shadow is defined in one startup file of three → bypassing it reveals a PATH entry → a binary there prints the flag | `type`/`which -a` → startup-file modes → `\cmd`/absolute path → PATH + `hash` |
+| 12 | read the script → its `case` has an unreachable arm → making it reachable exposes the rewrite → your audit tool detects it → flag | reading control flow → `case` → loops + `[[ ]]` → `stationctl` + `set -euo pipefail` |
+| 13 | `dpkg -S` on a stray file names its package → `dpkg -l` dates it → the source that shipped it is hand-added → the tool you install reads the flag | `dpkg -S` → `dpkg -l/-L` → sources/repos → `apt install` + use |
+| 14 | verify twice, two answers → the failing subset sorts by date → its members share a property → flag | `sha256sum -c` → `tar -t`/extract → `sort`/`du` → the property |
+| 15 | triage names the processes → forensics dates the artefacts → the two clusters split by hand → the euphemism → flag | all four capstone lessons, one stage each |
+
+Chapter 5's chain is deliberately the gentlest — it is the first, and stage 1 of the first chain a
+student ever meets must not be where they learn that chains exist.
+
+---
+
+## 9. Roleplay scenes — chapters 6 onward
+
+Run by an agent in GAMEMASTER mode (`docs/GAMEMASTER_PROTOCOL.md`). The character has knowledge, an
+attitude, and a reason not to hand it over. **No character ever knows the flag**, and no scene can
+be won by asking for the answer — §9's characters are people to interview, not oracles to query.
+
+| Ch | Character | The scene | What it actually teaches |
+|---|---|---|---|
+| 6 | **cass** | "The logs are broken." She means one specific thing and cannot name it. She describes what she *sees*: a report that "stops early". | Turning a symptom report into a search. The student must extract a time window and a filename before any `grep` is worth running. |
+| 7 | **the captain** | Wants "the access numbers." Won't specify format, then rejects the first version for being unreadable. | That "make me a report" is an unstated spec, and asking three questions up front beats three rewrites. |
+| 8 | **ops-bot** | Asked why a tool "worked", it answers that the tool exited zero. It will not volunteer that the tool also wrote 40,000 lines to stderr. | Literalism. The machine answered correctly and told you nothing. Ask about streams, not about success. |
+| 9 | **rhea** | Her jobs are slow. She blames the student's changes, and is wrong, and is not being unreasonable — the timing does line up. | Defending a diagnosis with evidence to somebody senior and annoyed, without either caving or getting defensive. |
+| 10 | **rhea** | The least-privilege scene. She refuses access until the student states exactly what they need, on what path, for how long, and why. | That "I need access to engineering" is not a request. This is the chapter's centrepiece, not a garnish. |
+| 11 | **cass** | Two people run the same command in the same directory and see different output. She is certain the machine is broken. | Isolating environment from filesystem — the student has to design the experiment that proves where the difference lives. |
+| 12 | **ops-bot** | Asked what the cleanup script does, it reports the script's own log line: "cleanup complete, 0 files removed." | That a log is a claim, not a record. Zero files removed should have been the question all along. |
+| 13 | **rhea** | She wants a tool installed station-wide. The student has to explain what an unlisted repository costs, to somebody who considers that pedantry. | Explaining a supply-chain risk without jargon and without moralising. |
+| 14 | **the captain** | Asked about the archive discrepancy, gives the first plausible explanation — a bad export — and is satisfied. Does not lie. | Accepting a plausible answer is how fourteen months happen. The student has to keep pulling with nothing but a hash mismatch. |
+| 15 | **the captain** | The final scene. Confronted with the timeline, does not deny it, does not apologise, and explains the reasoning: recertification, a calibration artefact, a station full of people. | There is no rebuttal to write. The student files the report anyway. That is the course's last lesson and it is not a technical one. |
+
+### Scene rules for authors
+
+- **The character is not a hint system.** A student who asks "what's the answer" gets the answer the
+  character would actually give, which is usually "that's your job."
+- **A scene must be finishable in ten exchanges.** If it isn't, the character is withholding too
+  much — see the difficulty dial in `GAMEMASTER_PROTOCOL.md`.
+- **Never let a scene stall.** If the student is lost, the character volunteers a *fact*, never a
+  method. cass can say the report stopped at 03:00; she cannot say to use `grep -c`.
+- **rhea is right more often than the student expects.** Two of her three scenes have her making a
+  correct objection. She is an obstacle, not an antagonist, and the difference is that she updates.
+- **ops-bot has no opinions and no manners.** Every ops-bot scene is a lesson in question quality.

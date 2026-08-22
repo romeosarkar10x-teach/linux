@@ -32,7 +32,9 @@ until this is done — Chapter 1 must be authored against a fixed story target, 
   - [x] **Decided:** Chapter 14 gained a fifth lesson, `05-incident-13`. It carries the arc's
         proof and was the only chapter besides ch10 with no finale; ch10's fold into
         `08-special-bits` is intended and stays. Syllabus and skeleton updated; 103 lessons now.
-  - [ ] Chained-CTF outlines for chapters 5–15; roleplay scene outlines for chapters 6–15
+  - [x] Chained-CTF outlines for chapters 5–15 (§8) — stage skills fixed so each chain audits the
+        whole chapter rather than one lesson
+  - [x] Roleplay scene outlines for chapters 6–15 (§9) — character, scene, and what each teaches
 - [ ] Per-chapter `NN-chapter-slug/story.md` for all 16 chapters — scene text per lesson, expanding
       the bible without contradicting it
 - [ ] Update `_handoff/LESSON_SPEC.md`: the lesson file set now includes an opening in-character
