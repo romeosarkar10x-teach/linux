@@ -6,7 +6,7 @@
 NN-chapter-slug/
   README.md                  # chapter intro: incident briefing, objectives, lesson list, prereqs
   NN-lesson-slug/
-    readme.md                # the notes — concept teaching
+    readme.md                # the notes — in-character page, then concept teaching
     exercises.md             # numbered, tiered exercises
     help.md                  # per-exercise hint ladder (tutor agent reads this)
     validation.md            # per-exercise agent rubric (validator agent reads this)
@@ -19,7 +19,12 @@ Numbering is zero-padded two digits, slugs kebab-case, mirroring boot.dev's conv
 ## `readme.md` — the notes
 
 - Boot.dev style but **deeper**. ~400–1200 words.
-- Structure: hook / story tie-in → concept → mechanism → worked examples → gotchas → what's next.
+- **Opens with the lesson's page** — the in-character framing, taken from that chapter's
+  `story.md`. At most four sentences. It states a situation, never a method: "cass says the
+  overnight logs are twice the size they should be", never "in this lesson you will learn `wc -l`".
+  A reader who skips it must lose nothing they need for the exercises. Rules: `CONTEXT.md` §4.6(b)
+  and `_handoff/CHALLENGE_DESIGN.md` §5a. Continuity authority: `_handoff/SCENARIOS.md`.
+- Structure: **page** → concept → mechanism → worked examples → gotchas → what's next.
 - Every command introduced gets: what it does, its most useful flags, and one runnable example.
 - Explicitly name the flags the exercises will need — **except** those reserved for the Dig tier.
 - Use callouts for warnings and gotchas. Prefer showing wrong-then-right over prose.
@@ -45,8 +50,10 @@ Each exercise states: the task, the lab path it operates in, and what "done" loo
 **never the command**. Experiment exercises must ask the student to write their prediction down
 before running, so the tutor and validator can compare it against reality.
 
-Volume target: **up to ~50 exercises per chapter** (user's explicit ask — "let the student practice
-hard"). Do not trim for brevity.
+Volume target: **~50 exercises per chapter is a floor, not a ceiling** (user's explicit ask — "let
+the student practice hard", and later "there should be lots of exercises actually"). The syllabus no
+longer carries per-chapter estimates, deliberately — see `CONTEXT.md` §4.5. Never trim for brevity
+and never trim to hit a number.
 
 ## `help.md` — the tutor's hint ladder
 

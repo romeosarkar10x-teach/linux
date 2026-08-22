@@ -238,7 +238,7 @@ Tracked in `TODO.md` Phase 1.75.
 - [x] Flag texts fixed for all 16 chapters — inline in §7
 - [x] Chained-CTF outlines, chapters 5–15 — §8
 - [x] Roleplay scene outlines, chapters 6–15 — §9
-- [ ] Per-lesson page text → the per-chapter `story.md` files
+- [x] Per-lesson page text → all 16 per-chapter `story.md` files
 
 One chapter has no `NN-incident-NN` lesson: Chapter 10, which folds its incident into
 `08-special-bits` — the syllabus already describes that lesson as "CTF: find the setuid backdoor",

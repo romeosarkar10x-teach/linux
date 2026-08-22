@@ -35,11 +35,11 @@ until this is done — Chapter 1 must be authored against a fixed story target, 
   - [x] Chained-CTF outlines for chapters 5–15 (§8) — stage skills fixed so each chain audits the
         whole chapter rather than one lesson
   - [x] Roleplay scene outlines for chapters 6–15 (§9) — character, scene, and what each teaches
-- [ ] Per-chapter `NN-chapter-slug/story.md` for all 16 chapters — scene text per lesson, expanding
-      the bible without contradicting it
-- [ ] Update `_handoff/LESSON_SPEC.md`: the lesson file set now includes an opening in-character
-      page in `readme.md` (≤ 4 sentences, frames but never teaches)
-- [ ] Update `AGENTS.md` build rule 7 — story is per lesson now, not only per chapter
+- [x] Per-chapter `NN-chapter-slug/story.md` for all 16 chapters — a page per lesson, expanding the
+      bible without contradicting it, plus each chapter's trace, roleplay and load-bearing lessons
+- [x] `_handoff/LESSON_SPEC.md` updated: `readme.md` now opens with the lesson's page from its
+      chapter's `story.md`, and the volume target is restated as a floor
+- [x] `AGENTS.md` build rules 7 and 8 updated — story is per lesson, continuity checked against the bible
 - [ ] Rewrite Chapter 0 in-story (decision (d)): VM as quarters, container as workstation, across
       all 6 lessons. **Guard:** no framing may obscure a literal install instruction; where the two
       conflict, the instruction wins. The 50 existing exercises stay — this is a framing pass, not a
