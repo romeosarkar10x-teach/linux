@@ -90,13 +90,41 @@ the last exercises in each lesson require reading `man` pages or `--help` for fl
 showed.
 
 ### 4.5 Volume
-**Up to ~50 exercises per chapter.** User: *"Let the student practice hard!"* Do not trim for
-brevity. Current syllabus totals **~630 exercises across 102 lessons in 16 chapters**.
+**~50 exercises per chapter is the floor, not the ceiling.** User: *"Let the student practice
+hard!"* and, on seeing Chapter 0 ship 50 against a planned ~12: *"the written is the original one,
+and it's okay to increase. there should be lots of exercises actually."*
+
+The `~630` total in `_handoff/SYLLABUS.md` is a **stale estimate, not a target**. Where a chapter's
+written count exceeds its syllabus estimate, the written count wins and the estimate gets updated —
+never the reverse. Do not trim a chapter to hit a number.
 
 ### 4.6 Story
 **Story-driven CTF world.** The student is the new junior sysadmin aboard **Orbital Station
-Kestrel**. Each chapter is an incident; stretch/flag tiers hide `KESTREL{...}` flags. Bible in
-`_handoff/STORY.md`.
+Kestrel**. Each chapter is an incident; stretch/flag tiers hide `KESTREL{...}` flags.
+
+Four decisions locked on 2026-08-23, after an audit found the story machinery fully specified but
+no scenario *content* written anywhere:
+
+**(a) Two-tier story files.** `_handoff/SCENARIOS.md` is the bible — the dorn sabotage timeline,
+cast continuity, and all 16 chapter incidents in outline. Each chapter additionally carries its own
+`NN-chapter-slug/story.md` with the scene text for its lessons. The bible is the continuity
+authority; a chapter file may not contradict it.
+
+**(b) Story lands per lesson, not per chapter.** Every lesson opens with a short in-character page
+tying its exercises to a station situation. The chapter incident remains the finale. This is a
+change from `_handoff/CHALLENGE_DESIGN.md` §5, which set the floor at one incident per chapter —
+that floor still holds, but it is no longer the whole story surface.
+
+**(c) The scenario bank is written up front, before Chapter 1.** The sabotage arc has 16 traces
+that Chapter 15 must assemble into one timeline. Authoring chapter by chapter would let trace 11
+contradict trace 4 with no way to notice until the capstone. So: timeline and all 16 incidents get
+written first, then Phase 2 authors Chapter 1 against a fixed target.
+
+**(d) Chapter 0 gets rewritten in-story.** It is currently near story-free — 4 of its 6 lesson
+readmes contain zero cast or station references. The VM becomes the student's quarters, the
+container their workstation. Constraint: the install steps are genuinely fiddly and a student
+following them is not yet in a position to enjoy a metaphor, so **no framing may obscure a literal
+instruction**. Where the two conflict, the instruction wins.
 
 ### 4.7 Hierarchy
 Same shape as boot.dev: numbered chapters containing numbered lessons —

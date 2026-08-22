@@ -21,7 +21,8 @@ instruction file for any AI agent **building** this course. `CLAUDE.md` is a poi
 | 8 | [_handoff/STORY.md](_handoff/STORY.md) | Narrative bible: Orbital Station Kestrel, cast, flag format |
 | 9 | [_handoff/SOURCE_COURSE.md](_handoff/SOURCE_COURSE.md) | Full breakdown of the boot.dev course — the student's exact prior knowledge |
 | 10 | [_handoff/CHALLENGE_DESIGN.md](_handoff/CHALLENGE_DESIGN.md) | Incidents, chained CTFs, roleplay, flag-planting rules, the sabotage arc |
-| 11 | [_handoff/QA_LOG.md](_handoff/QA_LOG.md) | The user's own words on each decision, verbatim |
+| 11 | [_handoff/SCENARIOS.md](_handoff/SCENARIOS.md) | Scenario bible — dorn timeline, cast continuity, all 16 incidents |
+| 12 | [_handoff/QA_LOG.md](_handoff/QA_LOG.md) | The user's own words on each decision, verbatim |
 
 ## Rules for the building agent
 
@@ -29,13 +30,19 @@ instruction file for any AI agent **building** this course. `CLAUDE.md` is a poi
    `_handoff/SOURCE_COURSE.md` plus earlier chapters of this course. Check TOC order before using
    any command or flag in an exercise.
 2. **Every lesson ships all 6 files.** No partial lessons. See `_handoff/LESSON_SPEC.md`.
-3. **Practice volume is the point.** Up to ~50 exercises per chapter. Do not trim to be concise.
+3. **Practice volume is the point.** ~50 exercises per chapter is a **floor**, not a ceiling — the
+   syllabus's per-chapter estimates are stale and lose to the written count. Never trim to be
+   concise. See `CONTEXT.md` §4.5.
 4. **No auto-grading scripts.** Validation is by AI agent rubric only — a locked decision.
 5. **A tutor agent must never give the student the answer.** See `_handoff/PROTOCOLS_SPEC.md`.
 6. **Update `DONE.md` and `TODO.md` as you go.** They are the handoff state.
 7. **Fun is a requirement.** Every chapter needs an Incident, and from ch5/ch6 onward a chained
-   CTF and a roleplay scene. See `_handoff/CHALLENGE_DESIGN.md`.
-8. Ask the user before deviating from the approved syllabus.
+   CTF and a roleplay scene. **Every *lesson* opens with an in-character page** (≤ 4 sentences,
+   frames the exercises, never teaches). See `_handoff/CHALLENGE_DESIGN.md` §5a.
+8. **Story continuity is checked against `_handoff/SCENARIOS.md`**, which is the authority on the
+   dorn timeline and who knows what when. A chapter's `story.md` expands the bible; it never
+   contradicts it.
+9. Ask the user before deviating from the approved syllabus.
 
 ## Conventions
 
