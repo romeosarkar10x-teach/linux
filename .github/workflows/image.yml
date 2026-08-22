@@ -1,0 +1,90 @@
+name: course image
+
+# Builds the Kestrel course container and publishes it to GHCR so the student
+# can `docker pull` instead of waiting on a local build.
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'container/**'
+      - '.github/workflows/image.yml'
+  workflow_dispatch:
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}/kestrel-course
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=raw,value=latest,enable={{is_default_branch}}
+            type=sha,format=long
+
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: container
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      # The image is only useful if the course actually works inside it. These
+      # are the same acceptance checks Phase 1 ran by hand.
+      - name: Acceptance checks
+        run: |
+          set -euo pipefail
+          IMG=$(echo "${{ steps.meta.outputs.tags }}" | head -n1)
+          docker pull "$IMG"
+
+          echo "--- course tools present (from the pinned Nix closure)"
+          for t in ls grep sed awk jq tree htop vim shellcheck curl tar file lsof less; do
+            docker run --rm "$IMG" bash -lc "command -v $t" | grep -q '^/opt/kestrel/bin/' \
+              || { echo "FAIL: $t is not coming from the Nix closure"; exit 1; }
+          done
+
+          echo "--- Debian plumbing still apt's (chapters 10 and 13 depend on it)"
+          for t in apt dpkg useradd sudo man; do
+            docker run --rm "$IMG" bash -lc "command -v $t" | grep -qv '^/opt/kestrel/' \
+              || { echo "FAIL: $t should not come from Nix"; exit 1; }
+          done
+
+          echo "--- reserved tools absent (chapter 13 installs these itself)"
+          for t in ncdu rg tldr ncal; do
+            docker run --rm "$IMG" bash -lc "command -v $t" >/dev/null 2>&1 \
+              && { echo "FAIL: $t must NOT be in the image"; exit 1; }
+          done
+
+          echo "--- man pages and the apropos index work"
+          docker run --rm "$IMG" bash -lc 'man jq | head -1' | grep -q JQ
+          docker run --rm "$IMG" bash -lc 'man bash | head -1' | grep -q BASH
+          docker run --rm "$IMG" bash -lc 'man 8 useradd | head -1' | grep -q USERADD
+          docker run --rm "$IMG" bash -lc 'apropos json' | grep -q jq
+
+          echo "--- fixture cast"
+          docker run --rm "$IMG" bash -lc 'id cadet && id rhea && id ops-bot && getent group crew engineering ops'
+
+          echo "all acceptance checks passed"
