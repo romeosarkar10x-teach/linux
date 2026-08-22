@@ -13,6 +13,33 @@ Ordered. Don't skip ahead — later phases depend on the format set by Phase 2.
 - [x] Chapter 0 complete — 6 lessons, 50 exercises, 1 flag
 - [x] `_handoff/CHALLENGE_DESIGN.md` + `docs/GAMEMASTER_PROTOCOL.md` (user's richer-CTF request)
 
+## Phase 1.75 — The scenario bank — **blocks Phase 2**
+
+Locked 2026-08-23 (`CONTEXT.md` §4.6, `_handoff/CHALLENGE_DESIGN.md` §5a). Nothing in Phase 2 starts
+until this is done — Chapter 1 must be authored against a fixed story target, not improvised.
+
+- [ ] `_handoff/SCENARIOS.md` — the bible:
+  - [ ] **The dorn timeline.** Who he was, what he actually did, with whom, why, and on what dates.
+        This is the spine Chapter 15 assembles; it does not exist yet in any file.
+  - [ ] Cast continuity sheet — where each of rhea / cass / dorn / ops-bot / the captain is, and
+        what they know, at each chapter. A character cannot know in ch3 what they learn in ch9.
+  - [ ] All 16 chapter incidents written to the 5-beat structure in `CHALLENGE_DESIGN.md` §1A
+        (page → constraint → dig with a red herring → fix/find → debrief)
+  - [ ] Reconcile the 16 sabotage traces (§4) against the timeline — each must be something dorn
+        plausibly did, on a date that fits, for a reason the capstone can state
+  - [ ] Chained-CTF outlines for chapters 5–15; roleplay scene outlines for chapters 6–15
+- [ ] Per-chapter `NN-chapter-slug/story.md` for all 16 chapters — scene text per lesson, expanding
+      the bible without contradicting it
+- [ ] Update `_handoff/LESSON_SPEC.md`: the lesson file set now includes an opening in-character
+      page in `readme.md` (≤ 4 sentences, frames but never teaches)
+- [ ] Update `AGENTS.md` build rule 7 — story is per lesson now, not only per chapter
+- [ ] Rewrite Chapter 0 in-story (decision (d)): VM as quarters, container as workstation, across
+      all 6 lessons. **Guard:** no framing may obscure a literal install instruction; where the two
+      conflict, the instruction wins. The 50 existing exercises stay — this is a framing pass, not a
+      content cut.
+- [ ] Update `_handoff/SYLLABUS.md` per-chapter exercise estimates to match reality (Ch0: ~12 → 50)
+      and drop the stale `~630` headline total
+
 ## Phase 2 — Chapter 1 as the format exemplar
 
 - [ ] Chapter `README.md` — incident briefing, objectives, prereqs, flag count
