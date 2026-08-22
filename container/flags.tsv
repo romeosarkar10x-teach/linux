@@ -1,0 +1,5 @@
+# Flag registry.  <lesson-id><TAB>sha256("kestrel-station-7" + flag)
+# Plaintext flags live ONLY in each lesson's solutions.md.
+# Add a row when a Flag-tier exercise is authored:
+#   printf '%s%s' 'kestrel-station-7' 'KESTREL{...}' | sha256sum
+00/04	2881af2449b763a832484539c98bb42f8fb9b73660a171a5e7dac2be67d00f70

@@ -1,0 +1,208 @@
+#!/usr/bin/env bash
+# kestrel -- helper for the Kestrel Linux course.
+# Runs on the VM (the Docker host), NOT inside the container.
+set -euo pipefail
+
+IMAGE=kestrel-course
+REMOTE_IMAGE=ghcr.io/romeosarkar10x-teach/linux/kestrel-course:latest
+NAME=kestrel
+VOLUME=kestrel-labs
+
+HERE=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
+COURSE=$(cd -- "$HERE/../.." && pwd)
+FLAGFILE="$COURSE/container/flags.tsv"
+CAPTURED="$COURSE/container/.captured"
+
+# Salt for flag hashing. Public on purpose -- it stops a casual `grep KESTREL`
+# from finding answers, which is all it needs to do. It is not a secret.
+SALT='kestrel-station-7'
+
+die() { printf 'kestrel: %s\n' "$*" >&2; exit 1; }
+have_docker() { command -v docker >/dev/null 2>&1 || die "docker not found. See docs/INSTALL_GUIDE.md"; }
+running() { [ "$(docker inspect -f '{{.State.Running}}' "$NAME" 2>/dev/null || echo false)" = true ]; }
+
+usage() {
+    cat <<'EOF'
+usage: kestrel <command> [args]
+
+  build [--local]          pull the prebuilt course image (--local builds it here)
+  start                    create/start the long-lived container
+  stop                     stop it (your work in /labs survives)
+  enter                    open a shell inside it as cadet
+  seed <ch>/<le>           run a lesson's setup.sh (does not wipe)
+  reset <ch>/<le>          WIPE that lesson's lab dir and re-seed it
+  status                   container state and which lessons are seeded
+  flags                    flags captured so far
+  flags submit <FLAG>      verify and record a flag
+  nuke                     destroy container AND all lab work (asks first)
+
+Lesson ids are chapter/lesson numbers: 06/03, 12/08, 00/01.
+EOF
+}
+
+# "06/03" -> "06-searching/03-regex-bre-ere"
+resolve() {
+    local id=${1:-} ch le path
+    [ -n "$id" ] || die "missing lesson id (e.g. 06/03)"
+    case $id in */*) ;; *) die "lesson id must look like 06/03" ;; esac
+    ch=${id%%/*}; le=${id##*/}
+    path=$(cd "$COURSE" && compgen -G "${ch}-*/${le}-*" | head -n1 || true)
+    [ -n "$path" ] || die "no lesson $id in the course tree"
+    printf '%s\n' "$path"
+}
+
+build_local() {
+    docker build -t "$IMAGE" "$COURSE/container"
+    echo "built $IMAGE locally"
+}
+
+# CI publishes the image to GHCR on every push to main, so the normal path is a
+# pull -- a local build has to fetch a Nix closure and rebuild the man index,
+# which takes minutes. --local forces the build anyway (offline, or you edited
+# container/Dockerfile and want to test it before pushing).
+cmd_build() {
+    have_docker
+    if [ "${1:-}" = --local ]; then
+        build_local
+        return
+    fi
+    echo "pulling $REMOTE_IMAGE ..."
+    if docker pull "$REMOTE_IMAGE"; then
+        docker tag "$REMOTE_IMAGE" "$IMAGE"
+        echo "pulled $IMAGE"
+    else
+        echo "pull failed -- falling back to a local build (this takes a few minutes)" >&2
+        build_local
+    fi
+}
+
+cmd_start() {
+    have_docker
+    docker image inspect "$IMAGE" >/dev/null 2>&1 || die "no image yet -- run: kestrel build"
+    if docker inspect "$NAME" >/dev/null 2>&1; then
+        running || docker start "$NAME" >/dev/null
+    else
+        docker volume create "$VOLUME" >/dev/null
+        docker run -d --name "$NAME" --hostname kestrel \
+            -v "$VOLUME:/labs" \
+            -v "$COURSE:/course:ro" \
+            "$IMAGE" >/dev/null
+    fi
+    echo "container '$NAME' is up. enter it with: kestrel enter"
+}
+
+cmd_stop() { have_docker; docker stop "$NAME" >/dev/null && echo "stopped (labs preserved)"; }
+
+cmd_enter() {
+    have_docker
+    running || cmd_start
+    docker exec -it -u cadet -w /home/cadet "$NAME" /bin/bash -l
+}
+
+# Run a lesson's setup.sh inside the container as root, then hand the lab to cadet.
+run_setup() {
+    local rel=$1
+    docker exec -u root "$NAME" /bin/bash -c "
+        set -euo pipefail
+        [ -f '/course/$rel/setup.sh' ] || { echo 'no setup.sh for $rel' >&2; exit 1; }
+        bash '/course/$rel/setup.sh'
+        chown -R cadet:crew '/labs/$rel' 2>/dev/null || true
+    "
+}
+
+cmd_seed() {
+    have_docker; running || die "container not running -- kestrel start"
+    local rel; rel=$(resolve "${1:-}")
+    run_setup "$rel"
+    echo "seeded /labs/$rel"
+}
+
+cmd_reset() {
+    have_docker; running || die "container not running -- kestrel start"
+    local rel; rel=$(resolve "${1:-}")
+    printf 'This wipes /labs/%s and re-seeds it. Work there is lost. Continue? [y/N] ' "$rel"
+    read -r ans; case ${ans:-n} in y|Y) ;; *) echo "aborted"; return 1 ;; esac
+    docker exec -u root "$NAME" rm -rf "/labs/$rel"
+    run_setup "$rel"
+    echo "reset /labs/$rel"
+}
+
+cmd_status() {
+    have_docker
+    if running; then echo "container: running"; else echo "container: stopped"; fi
+    echo
+    echo "seeded labs:"
+    if running; then
+        docker exec "$NAME" find /labs -maxdepth 2 -mindepth 2 -type d -printf '  %P\n' 2>/dev/null | sort || echo "  (none)"
+    else
+        echo "  (container down)"
+    fi
+    echo
+    local total captured
+    total=$(grep -cve '^[[:space:]]*#' -e '^[[:space:]]*$' "$FLAGFILE" 2>/dev/null || true)
+    captured=$( [ -f "$CAPTURED" ] && wc -l < "$CAPTURED" || echo 0 )
+    echo "flags: $captured / $total captured"
+}
+
+flag_hash() { printf '%s%s' "$SALT" "$1" | sha256sum | cut -d' ' -f1; }
+
+cmd_flags() {
+    if [ "${1:-}" = submit ]; then
+        local flag=${2:-} h line id
+        [ -n "$flag" ] || die "usage: kestrel flags submit 'KESTREL{...}'"
+        [ -f "$FLAGFILE" ] || die "no flag registry at $FLAGFILE"
+        h=$(flag_hash "$flag")
+        line=$(awk -v h="$h" '$2==h {print $1; exit}' "$FLAGFILE" || true)
+        if [ -z "$line" ]; then
+            echo "not a valid flag. keep looking."
+            return 1
+        fi
+        id=$line
+        touch "$CAPTURED"
+        if grep -qx -- "$id" "$CAPTURED"; then
+            echo "correct -- $id (already captured)"
+        else
+            printf '%s\n' "$id" >> "$CAPTURED"
+            echo "correct -- $id captured"
+        fi
+        return 0
+    fi
+
+    [ -f "$FLAGFILE" ] || die "no flag registry at $FLAGFILE"
+    touch "$CAPTURED"
+    echo "flag              status"
+    echo "----------------  ------"
+    while read -r id _hash; do
+        case $id in ''|\#*) continue ;; esac
+        if grep -qx -- "$id" "$CAPTURED"; then
+            printf '%-16s  captured\n' "$id"
+        else
+            printf '%-16s  open\n' "$id"
+        fi
+    done < "$FLAGFILE"
+}
+
+cmd_nuke() {
+    have_docker
+    echo "This destroys the container AND the $VOLUME volume."
+    echo "ALL lab work is lost, including anything waiting to be validated."
+    printf "Type NUKE to confirm: "
+    read -r ans; [ "$ans" = NUKE ] || { echo "aborted"; return 1; }
+    docker rm -f "$NAME" >/dev/null 2>&1 || true
+    docker volume rm "$VOLUME" >/dev/null 2>&1 || true
+    echo "gone. 'kestrel start' builds a fresh one."
+}
+
+case ${1:-} in
+    build)  shift; cmd_build "$@" ;;
+    start)  shift; cmd_start "$@" ;;
+    stop)   shift; cmd_stop "$@" ;;
+    enter)  shift; cmd_enter "$@" ;;
+    seed)   shift; cmd_seed "$@" ;;
+    reset)  shift; cmd_reset "$@" ;;
+    status) shift; cmd_status "$@" ;;
+    flags)  shift; cmd_flags "$@" ;;
+    nuke)   shift; cmd_nuke "$@" ;;
+    -h|--help|help|'') usage ;;
+    *) die "unknown command '$1' (try: kestrel help)" ;;
+esac

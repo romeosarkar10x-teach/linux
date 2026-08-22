@@ -1,0 +1,37 @@
+
+# --- Kestrel course defaults -------------------------------------------------
+# Appended at image build time. Chapter 11 teaches every line of this; until
+# then, it is here so the validator can read your history properly.
+HISTSIZE=100000
+HISTFILESIZE=200000
+HISTTIMEFORMAT='%F %T '
+shopt -s histappend
+
+export COURSE=/course
+export LABS=/labs
+
+# Jump to a lesson's lab dir:  lab 06/03
+lab() {
+    if [ $# -ne 1 ]; then
+        echo "usage: lab <chapter>/<lesson>   e.g. lab 06/03" >&2
+        return 2
+    fi
+    local target
+    target=$(find /labs -maxdepth 2 -mindepth 2 -type d \
+                -path "*/${1%%/*}-*/${1##*/}-*" -print -quit 2>/dev/null)
+    if [ -z "$target" ]; then
+        echo "no lab seeded for $1 -- run 'kestrel reset $1' from the VM" >&2
+        return 1
+    fi
+    cd "$target" || return 1
+    pwd
+}
+
+# Banner only for interactive shells -- never pollute script or pipe output.
+case $- in
+  *i*) cat <<'BANNER'
+   Orbital Station Kestrel -- workstation online.
+   Notes: /course     Labs: /labs     Jump to a lab:  lab 06/03
+BANNER
+  ;;
+esac
