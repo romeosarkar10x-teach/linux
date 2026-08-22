@@ -1,5 +1,8 @@
 # 00/02 — Your quarters: the VM
 
+> Your quarters first. Everything you are about to break, you will break in a room that can be
+> restored from a snapshot — which is a luxury the station itself does not have.
+
 You're going to run commands that can destroy an operating system. Some of them on purpose. That
 needs to happen somewhere that isn't the machine you're reading this on.
 

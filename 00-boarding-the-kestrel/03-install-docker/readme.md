@@ -1,5 +1,8 @@
 # 00/03 — Docker Engine
 
+> The workstation is not the room. You want a machine you can wreck on purpose, on a station
+> where the machines have been running for eleven years and nobody remembers what half of them do.
+
 You need a container. Docker is how you get one.
 
 ## What a container actually is

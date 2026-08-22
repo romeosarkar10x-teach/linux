@@ -1,5 +1,8 @@
 # 00/05 — Getting help
 
+> There is one other sysadmin on this station and it is an agent that will not tell you the
+> answer. It will ask what you tried. Have an answer ready.
+
 Three sources of help, in the order you should reach for them.
 
 ## 1. The machine

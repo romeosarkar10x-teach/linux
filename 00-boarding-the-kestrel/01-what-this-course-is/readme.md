@@ -1,5 +1,9 @@
 # 00/01 — What this course is
 
+> Twenty-two days aboard and the sysadmin post is yours, on the grounds that nobody else wanted
+> it. There is no handover. Your predecessor left a file called `notes.txt` containing the word
+> `later`.
+
 You've done a Linux course already. You can probably name what `chmod 755` does. Can you write,
 right now, without looking: a command that finds every file under `/var/log` modified in the last
 day, larger than 10 KB, and prints them newest-first?

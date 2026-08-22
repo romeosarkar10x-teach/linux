@@ -13,10 +13,10 @@ Ordered. Don't skip ahead — later phases depend on the format set by Phase 2.
 - [x] Chapter 0 complete — 6 lessons, 50 exercises, 1 flag
 - [x] `_handoff/CHALLENGE_DESIGN.md` + `docs/GAMEMASTER_PROTOCOL.md` (user's richer-CTF request)
 
-## Phase 1.75 — The scenario bank — **blocks Phase 2**
+## Phase 1.75 — The scenario bank — **DONE**
 
-Locked 2026-08-23 (`CONTEXT.md` §4.6, `_handoff/CHALLENGE_DESIGN.md` §5a). Nothing in Phase 2 starts
-until this is done — Chapter 1 must be authored against a fixed story target, not improvised.
+Locked and completed 2026-08-23 (`CONTEXT.md` §4.6, `_handoff/CHALLENGE_DESIGN.md` §5a). Chapter 1
+is now authored against a fixed story target rather than improvised.
 
 - [x] `_handoff/SCENARIOS.md` — the bible, spine written:
   - [x] **The dorn timeline** — 25 dated events, 2176-02-11 to course-present 2187-06-14
@@ -40,10 +40,10 @@ until this is done — Chapter 1 must be authored against a fixed story target, 
 - [x] `_handoff/LESSON_SPEC.md` updated: `readme.md` now opens with the lesson's page from its
       chapter's `story.md`, and the volume target is restated as a floor
 - [x] `AGENTS.md` build rules 7 and 8 updated — story is per lesson, continuity checked against the bible
-- [ ] Rewrite Chapter 0 in-story (decision (d)): VM as quarters, container as workstation, across
-      all 6 lessons. **Guard:** no framing may obscure a literal install instruction; where the two
-      conflict, the instruction wins. The 50 existing exercises stay — this is a framing pass, not a
-      content cut.
+- [x] Chapter 0 rewritten in-story (decision (d)): all 6 lesson readmes now open with their page
+      from `00-boarding-the-kestrel/story.md`. VM as quarters, container as workstation. Applied as
+      a framing pass — every install instruction, the snapshot step included, is untouched below the
+      page, and all 50 exercises stay.
 - [x] Dropped the per-chapter exercise estimates from both syllabus files rather than correcting
       them — they were guesses, they invited trimming to a number, and `CONTEXT.md` §4.5 makes ~50
       a floor

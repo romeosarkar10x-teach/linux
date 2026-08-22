@@ -1,5 +1,8 @@
 # 00/06 — Recording your work
 
+> Nobody watched dorn work either. That is most of why you are in this situation, and it is why
+> your shifts get recorded from here on.
+
 There are no auto-grading scripts in this course. A validator looks at what you did and decides
 whether you did it. That only works if you leave a trail.
 

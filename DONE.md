@@ -75,7 +75,13 @@ files; unwritten ones are marked `STUB`.
 - **`kestrel reset 00/04` verified to wipe only that lab** — home file, other lesson's lab, and
   captured-flag state all survived
 
-**Chapter 0 complete** — 6 lessons × 6 files, all written, no stubs:
+**Scenario bank complete** (Phase 1.75) — `_handoff/SCENARIOS.md`, 669 lines: the dorn timeline
+(25 dated events, 2176-02-11 → course-present 2187-06-14), a cast continuity sheet, all 16 traces
+reconciled to dated events, the two-hands split the capstone tests, all 16 incidents at 5-beat
+depth with fixed flag texts, 11 CTF chains and 10 roleplay scenes. Plus a `story.md` in every
+chapter carrying a page per lesson.
+
+**Chapter 0 complete** — 6 lessons × 6 files, all written, no stubs, rewritten in-story 2026-08-23:
 | Lesson | Exercises |
 |---|---|
 | `01-what-this-course-is` | 6 |

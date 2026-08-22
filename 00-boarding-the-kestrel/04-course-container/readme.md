@@ -1,5 +1,9 @@
 # 00/04 — The workstation
 
+> Your terminal is the one with the cracked bezel. `/course` is the manual: bolted down, and
+> read-only for a reason. `/labs` is the bench — everything you build, break and rebuild happens
+> there.
+
 Time to build the thing you'll actually live in.
 
 ## What you're building
