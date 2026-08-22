@@ -94,9 +94,9 @@ showed.
 hard!"* and, on seeing Chapter 0 ship 50 against a planned ~12: *"the written is the original one,
 and it's okay to increase. there should be lots of exercises actually."*
 
-The `~630` total in `_handoff/SYLLABUS.md` is a **stale estimate, not a target**. Where a chapter's
-written count exceeds its syllabus estimate, the written count wins and the estimate gets updated —
-never the reverse. Do not trim a chapter to hit a number.
+The per-chapter estimates and the `~630` total were **removed** from both syllabus files on
+2026-08-23 rather than corrected. They were guesses, they were wrong, and a number in a spec invites
+trimming a chapter to hit it. Where a count is needed, count the written exercises.
 
 ### 4.6 Story
 **Story-driven CTF world.** The student is the new junior sysadmin aboard **Orbital Station

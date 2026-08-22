@@ -1,6 +1,6 @@
 # Kestrel Linux
 
-A hands-on Linux course. Notes to teach the concept, then a lot of exercises — around 630 of them
+A hands-on Linux course. Notes to teach the concept, then a lot of exercises — hundreds of them
 across 16 chapters — because reading about `find` and being able to use `find` are different
 skills, and only one of them survives contact with a real machine.
 

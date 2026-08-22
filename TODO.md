@@ -4,7 +4,7 @@ Ordered. Don't skip ahead — later phases depend on the format set by Phase 2.
 
 ## Phase 1 — Skeleton, shared docs, container — **DONE**
 
-- [x] Skeleton for all 16 chapters / 102 lessons, 6 files each
+- [x] Skeleton for all 16 chapters / 103 lessons, 6 files each
 - [x] Student-facing `README.md`, `SETUP.md`, `SYLLABUS.md`, `STORY.md`
 - [x] All 9 `docs/` files (`CHEATSHEET.md` intentionally a stub until Phase 4)
 - [x] `container/` — Dockerfile, bashrc-seed, flags.tsv, wrappers, `bin/kestrel`
@@ -29,8 +29,9 @@ until this is done — Chapter 1 must be authored against a fixed story target, 
   - [x] All 16 chapter incidents written to the 5-beat structure in `CHALLENGE_DESIGN.md` §1A
         (page → constraint → dig with a red herring → fix/find → debrief), each bound to its
         trace, its hand, its tool ceiling and a fixed flag text
-  - [ ] **Decide:** Chapter 14 has no `NN-incident-NN` lesson (4 lessons, ends at `04-checksums`).
-        Currently written as folding into `04-checksums`. Either accept that or add a 5th lesson.
+  - [x] **Decided:** Chapter 14 gained a fifth lesson, `05-incident-13`. It carries the arc's
+        proof and was the only chapter besides ch10 with no finale; ch10's fold into
+        `08-special-bits` is intended and stays. Syllabus and skeleton updated; 103 lessons now.
   - [ ] Chained-CTF outlines for chapters 5–15; roleplay scene outlines for chapters 6–15
 - [ ] Per-chapter `NN-chapter-slug/story.md` for all 16 chapters — scene text per lesson, expanding
       the bible without contradicting it
@@ -41,8 +42,9 @@ until this is done — Chapter 1 must be authored against a fixed story target, 
       all 6 lessons. **Guard:** no framing may obscure a literal install instruction; where the two
       conflict, the instruction wins. The 50 existing exercises stay — this is a framing pass, not a
       content cut.
-- [ ] Update `_handoff/SYLLABUS.md` per-chapter exercise estimates to match reality (Ch0: ~12 → 50)
-      and drop the stale `~630` headline total
+- [x] Dropped the per-chapter exercise estimates from both syllabus files rather than correcting
+      them — they were guesses, they invited trimming to a number, and `CONTEXT.md` §4.5 makes ~50
+      a floor
 
 ## Phase 2 — Chapter 1 as the format exemplar
 
@@ -87,7 +89,7 @@ Progress:
 - [ ] Flag audit: every flag reachable only via its chapter's skill; no plaintext outside
       `solutions.md`; `grep -r KESTREL` over the container finds nothing early
 - [ ] Sabotage-arc pass: all 16 traces plantable, none load-bearing
-- [ ] Count check: ~630 exercises; every lesson has Warmup + Core + Dig; every chapter has a Flag
+- [ ] Count check: every lesson has Warmup + Core + Dig; every chapter has a Flag and an Incident
 
 ## Phase 1.5 — Image reproducibility hardening — **DONE**
 

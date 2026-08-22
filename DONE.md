@@ -32,7 +32,7 @@ All captured verbatim in `_handoff/QA_LOG.md`.
 | `AGENTS.md` | Root entrypoint for the building agent; read-order table; 8 build rules |
 | `CLAUDE.md` | One-line pointer to `AGENTS.md` |
 | `CONTEXT.md` | Mission, student, environment, every locked decision, output layout, non-goals |
-| `_handoff/SYLLABUS.md` | **Approved TOC** — 16 chapters, 102 lessons, ~630 exercises |
+| `_handoff/SYLLABUS.md` | **Approved TOC** — 16 chapters, 103 lessons |
 | `_handoff/LESSON_SPEC.md` | The 6-file lesson set, templates, six exercise tiers, authoring rules |
 | `_handoff/PROTOCOLS_SPEC.md` | Specs for the tutor / validator / authoring docs |
 | `_handoff/CHALLENGE_DESIGN.md` | Incident format, chained CTFs, roleplay, flag-planting rules, the 16-chapter sabotage arc |

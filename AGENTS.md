@@ -14,7 +14,7 @@ instruction file for any AI agent **building** this course. `CLAUDE.md` is a poi
 | 1 | [CONTEXT.md](CONTEXT.md) | Mission, the student, every locked decision and why. **Read fully. Nothing here is optional.** |
 | 2 | [DONE.md](DONE.md) | What has actually been produced so far |
 | 3 | [TODO.md](TODO.md) | Ordered remaining work, phase by phase |
-| 4 | [_handoff/SYLLABUS.md](_handoff/SYLLABUS.md) | Approved table of contents — 16 chapters, 102 lessons, ~630 exercises |
+| 4 | [_handoff/SYLLABUS.md](_handoff/SYLLABUS.md) | Approved table of contents — 16 chapters, 103 lessons |
 | 5 | [_handoff/LESSON_SPEC.md](_handoff/LESSON_SPEC.md) | Exact file set, templates, exercise tiers every lesson must follow |
 | 6 | [_handoff/PROTOCOLS_SPEC.md](_handoff/PROTOCOLS_SPEC.md) | Specs for the tutor/validator docs shipped under `docs/` |
 | 7 | [_handoff/CONTAINER.md](_handoff/CONTAINER.md) | Docker sandbox + `kestrel` helper design |
