@@ -1,7 +1,7 @@
 # DONE.md — What exists so far
 
 Status: **planning complete. Phases 1 and 2 complete, Phase 3 under way — skeleton, all shared docs, working
-container, scenario bank, and Chapters 0, 1 and 2 written in full.** Chapters 3–15 are stubs.
+container, scenario bank, and Chapters 0 through 4 written in full.** Chapters 5–15 are stubs.
 
 ## Completed
 
@@ -210,9 +210,56 @@ exercises built on that fact still hold; `kestrel seed`/`reset 02/07` reproduce 
 byte and stay idempotent; gating checked (ch03 open with `02/07` captured, ch04 closed, `unlock 06`
 opens it, `unlock 99` refused).
 
+**Chapter 4 complete** (Phase 3) — 5 lessons x 6 files, no stubs, chapter README written:
+
+| Lesson | Exercises |
+|---|---|
+| `01-cat-and-friends` | 39 |
+| `02-touch-mkdir` | 42 |
+| `03-cp-mv` | 46 |
+| `04-rm-safely` | 48 |
+| `05-incident-04` | 33, incl. the chapter flag |
+
+**208 exercises in Chapter 4.** One flag registered: `04/05`, hash in `container/flags.tsv`.
+
+Verified, not just written:
+- all 5 `setup.sh` run under `kestrel seed` from a clean `/labs` and are idempotent, each proven by
+  identical `find . -printf "%p %y %m %U:%G %s\n" | sort | md5sum` across two seeds
+  (`05-incident-04` = `c50b33a757a3e67ebb2b39661c73d538`, `04-rm-safely` =
+  `d482909308e593426f89d3bcba1a391a`)
+- every factual claim measured in the running image before shipping, and the exercises rebuilt
+  around actual behaviour where a draft was wrong. The corrections are in the per-lesson commit
+  messages; the ones that changed a whole exercise:
+  - `chmod 400` does not protect a file from deletion — a 0400 file in a writable directory is
+    removed after a courtesy prompt, while a 0644 file in a 0555 directory cannot be removed at all
+    and `-f` does not help. Deleting is editing the directory that names it.
+  - `rm -i ... </dev/null` prints every prompt, deletes nothing, and exits **0**; `cp -i </dev/null`
+    exits 1. The exit status is not evidence that anything happened.
+  - `rm -f` in a directory containing a file named `-f` exits 0, prints nothing, deletes nothing:
+    the name is consumed as an option *and* the empty operand list stops being an error.
+  - `rm -rf --preserve-root=all /labs` fails with `skipping '/labs', since it's on a different
+    device` and exits 1 — `/labs` is `/dev/nvme2n1p2`, `/` is `overlay`. The plain `rm -rf /`
+    failsafe matches the literal argument, so `rm -rf /*` defeats it; the danger is the expansion.
+  - `find … -delete` on a non-empty directory reports `Directory not empty` and exits 1.
+  - trailing slash on a symlink to a directory: `rm link/` says `Is a directory`, `rm -r link/` says
+    `Not a directory`, both exit 1.
+- the incident solved from a clean lab: the manifest read back with the convention it states, the
+  duplicate row settled against the file in `salvage/`, `kestrel flags submit` accepts the result
+- flag is not greppable — it is stored in no file. `grep -ri "deleted_not_moved\|KESTREL{"` over the
+  lab returns rc 1. The readback of the seeded manifest spells `deleetednotmoved`, which is the flag
+  only after the superseded row is discarded.
+- the `.bak` manifest is a red herring and not a decoy: it is nine hours older, three files short,
+  and agrees on every size it shares, so a tree built from it looks consistent — but its readback
+  spells `notdetedmoed`, visibly not three words, so it never functions as a submittable flag
+- trace 4 planted: `records/copy-notes.txt`, dorn's record of what he copied on 2187-05-17,
+  unattributed. `help.md`, `validation.md` and `solutions.md` all forbid naming an author.
+- **the lesson's Distinction, deliberate:** the flag text is somebody's *conclusion*, while
+  exercises 26–27 require the student to state that the evidence for deletion-versus-move is not
+  present in what survives. Answering the flag and answering the question are not the same act.
+
 ## Not started
 
-Chapters 3–15 — 82 lessons, all stubs. `docs/CHEATSHEET.md` content. See `TODO.md`.
+Chapters 5–15 — 71 lessons, all stubs. `docs/CHEATSHEET.md` content. See `TODO.md`.
 
 ## Current tree
 
@@ -226,5 +273,9 @@ Chapters 3–15 — 82 lessons, all stubs. `docs/CHEATSHEET.md` content. See `TO
                AUTHORING  SELF_CHECK  RECORDING  INSTALL_GUIDE  CHEATSHEET
   container/   Dockerfile  bashrc-seed  flags.tsv  build.sh  run.sh  reset.sh  bin/kestrel
   00-boarding-the-kestrel/     COMPLETE — 6 lessons
-  01-shell-and-terminal/ ... 15-capstone-kestrel-breach/     stubs
+  01-shell-and-terminal/       COMPLETE — 7 lessons
+  02-navigating-the-filesystem/ COMPLETE — 7 lessons
+  03-files-links-and-types/    COMPLETE — 6 lessons
+  04-creating-copying-destroying/ COMPLETE — 5 lessons
+  05-globbing-and-quoting/ ... 15-capstone-kestrel-breach/     stubs
 ```
