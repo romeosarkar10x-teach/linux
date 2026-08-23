@@ -45,7 +45,7 @@ reset that one.
 
 | Path | What | Survives what |
 |---|---|---|
-| `/course` | this course tree, **read-only** | it's a bind mount from the VM |
+| `/course` | the notes and exercises, **read-only** | it's a bind mount from the VM |
 | `/labs/...` | your work, per lesson | a Docker named volume — survives stop, restart, image rebuild |
 | `/home/cadet` | your home; config, `~/bin`, transcripts | the container's writable layer — survives stop/restart, **not** a container rebuild |
 
@@ -55,6 +55,12 @@ VM regularly — `docs/RECORDING.md`.
 
 `/course` being read-only is intentional. Your work goes in `/labs`, never in the course tree, and
 the read-only mount enforces it.
+
+`/course` is also not everything on the VM. `kestrel start` stages a view of the course — the
+readme and exercises for each lesson you have reached, plus the chapter and shared docs — and
+mounts that. The answers, the rubrics, the scripts that build your labs and the story bible are
+on the VM but never inside the container. A chapter appears once you have captured the flag in
+the chapter before it; `kestrel unlock <chapter>` opens one early if you want to read ahead.
 
 ## The helper
 

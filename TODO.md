@@ -109,10 +109,15 @@ Progress:
 - [ ] **Gamemaster dry-run**: a roleplay scene must not stall, and must not leak the answer
 - [ ] Flag audit: every flag reachable only via its chapter's skill; no plaintext outside
       `solutions.md`; `grep -r KESTREL` over the container finds nothing early
-  - **Known leak, decide in Phase 4:** `_handoff/SCENARIOS.md` lists every chapter's flag text and
-    is mounted at `/course/_handoff` inside the container, so `grep -r KESTREL /course` finds all
-    of them. Either exclude `_handoff/` from the container mount or move the flag texts out of the
-    bible into a file the mount skips.
+  - **FIXED 2026-08-23, verify it holds as chapters land.** The container used to bind-mount the
+    whole repo at `/course`, so every `solutions.md` (answers and flag plaintexts), `help.md`,
+    `validation.md`, `setup.sh`, every `story.md`, `_handoff/SCENARIOS.md` and `container/flags.tsv`
+    were readable by the student. `kestrel start` now stages a student view
+    (`container/.view/`, gitignored) holding only the lesson `readme.md`/`exercises.md`, chapter
+    READMEs and student docs, and mounts that instead. `setup.sh` is piped to the container on
+    stdin rather than read from a mount. The view also carries only unlocked chapters — a chapter
+    opens once every flag in the previous one is captured, with `kestrel unlock <ch>` as an
+    override. Phase 4 still needs to re-run `grep -r KESTREL /course` after the last chapter.
 - [ ] Sabotage-arc pass: all 16 traces plantable, none load-bearing
 - [ ] Count check: every lesson has Warmup + Core + Dig; every chapter has a Flag and an Incident
 

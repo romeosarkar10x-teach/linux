@@ -105,12 +105,25 @@ log out and back in. (Chapter 11/02.)
 
 | Path | What |
 |---|---|
-| `/course` | the course tree, **read-only** — notes and exercises |
+| `/course` | the course material, **read-only** — notes and exercises |
 | `/labs/<chapter>/<lesson>/` | your work area for one lesson |
 | `/home/cadet` | your home. Yours to modify; survives everything except `kestrel nuke`. |
 
 `/labs` is a Docker named volume, so your work survives `docker stop`, restarts, and image
 rebuilds.
+
+`/course` is **not** the whole repository. `kestrel start` stages a student view of it — each
+lesson's `readme.md` and `exercises.md`, the chapter READMEs, and the shared docs — and mounts only
+that. The hint ladders, rubrics, reference answers, lab setup scripts and story bible stay on the
+VM, out of the container, where a stray `grep -r` cannot reach them.
+
+The view also holds only the chapters you have reached: a chapter opens once you have captured every
+flag in the one before it. To look ahead or revisit anyway:
+
+```bash
+kestrel unlock 06       # force chapter 06 open in /course
+kestrel status          # shows which chapters are visible
+```
 
 ### Seeding and resetting
 

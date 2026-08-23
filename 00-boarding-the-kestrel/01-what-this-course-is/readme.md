@@ -98,7 +98,7 @@ Nowhere else in the course does this happen.
 
 | Path | What |
 |---|---|
-| `/course` (in the container) | this course tree, read-only |
+| `/course` (in the container) | the notes and exercises for the chapters you've reached, read-only |
 | `/labs/<chapter>/<lesson>/` | your work area for one lesson |
 | `/home/cadet` | your home directory, yours to modify |
 

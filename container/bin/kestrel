@@ -12,6 +12,12 @@ HERE=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
 COURSE=$(cd -- "$HERE/../.." && pwd)
 FLAGFILE="$COURSE/container/flags.tsv"
 CAPTURED="$COURSE/container/.captured"
+# What the container actually sees at /course. Staged from $COURSE by
+# stage_view(): student-facing files only, unlocked chapters only. The repo
+# itself is never bind-mounted -- it holds solutions.md, help.md, validation.md,
+# setup.sh, flags.tsv and _handoff/, none of which a student may read.
+VIEW="$COURSE/container/.view"
+UNLOCKED="$COURSE/container/.unlocked"
 
 # Salt for flag hashing. Public on purpose -- it stops a casual `grep KESTREL`
 # from finding answers, which is all it needs to do. It is not a secret.
@@ -31,7 +37,8 @@ usage: kestrel <command> [args]
   enter                    open a shell inside it as cadet
   seed <ch>/<le>           run a lesson's setup.sh (does not wipe)
   reset <ch>/<le>          WIPE that lesson's lab dir and re-seed it
-  status                   container state and which lessons are seeded
+  status                   container state, seeded lessons, unlocked chapters
+  unlock <chapter>         force a chapter open in /course (e.g. 04)
   flags                    flags captured so far
   flags submit <FLAG>      verify and record a flag
   nuke                     destroy container AND all lab work (asks first)
@@ -49,6 +56,90 @@ resolve() {
     path=$(cd "$COURSE" && compgen -G "${ch}-*/${le}-*" | head -n1 || true)
     [ -n "$path" ] || die "no lesson $id in the course tree"
     printf '%s\n' "$path"
+}
+
+# --- the /course view -------------------------------------------------------
+#
+# The container sees a staged copy, never the repo. Staged in:
+#   root student docs, the four student-facing docs/ files and the three
+#   agent-mode docs the student is told to hand to their agent, and -- for
+#   unlocked chapters only -- the chapter README plus each lesson's readme.md
+#   and exercises.md.
+# Never staged:
+#   solutions.md, help.md, validation.md, setup.sh (answers and construction),
+#   story.md (carries each chapter's flag plaintext), _handoff/ (SCENARIOS.md
+#   lists all 16 flag texts), container/ (flags.tsv, .captured), .git.
+#
+# A chapter is unlocked when every flag registered for the previous chapter has
+# been captured. Chapters 00 and 01 are always open, and `kestrel unlock <ch>`
+# forces one open for a student who wants to skip ahead or revisit.
+
+STUDENT_ROOT_DOCS='README.md SETUP.md SYLLABUS.md STORY.md'
+STUDENT_DOCS='CHEATSHEET.md INSTALL_GUIDE.md RECORDING.md SELF_CHECK.md
+              AGENT_MODES.md TUTOR_PROTOCOL.md VALIDATION_PROTOCOL.md'
+
+chapter_dirs() { (cd "$COURSE" && compgen -G '[0-9][0-9]-*' || true) | sort; }
+
+# every flag registered for chapter NN, captured?
+chapter_flags_captured() {
+    local ch=$1 found=0 id
+    [ -f "$FLAGFILE" ] || return 1
+    while read -r id _hash; do
+        case $id in ''|\#*) continue ;; "$ch"/*) ;; *) continue ;; esac
+        found=1
+        grep -qx -- "$id" "$CAPTURED" 2>/dev/null || return 1
+    done < "$FLAGFILE"
+    [ "$found" = 1 ]
+}
+
+chapter_open() {
+    local ch=$1 prev
+    case $ch in 00|01) return 0 ;; esac
+    if [ -f "$UNLOCKED" ] && grep -qx -- "$ch" "$UNLOCKED"; then return 0; fi
+    prev=$(printf '%02d' $((10#$ch - 1)))
+    chapter_flags_captured "$prev"
+}
+
+# Refill $VIEW in place. It must keep its inode: the running container bind-mounts
+# it, and replacing the directory would leave the mount pointing at the old one.
+stage_view() {
+    local d ch lesson dest f
+    mkdir -p "$VIEW"
+    find "$VIEW" -mindepth 1 -maxdepth 1 -exec rm -rf {} +
+
+    for f in $STUDENT_ROOT_DOCS; do
+        if [ -f "$COURSE/$f" ]; then cp "$COURSE/$f" "$VIEW/$f"; fi
+    done
+    mkdir -p "$VIEW/docs"
+    for f in $STUDENT_DOCS; do
+        if [ -f "$COURSE/docs/$f" ]; then cp "$COURSE/docs/$f" "$VIEW/docs/$f"; fi
+    done
+
+    for d in $(chapter_dirs); do
+        ch=${d%%-*}
+        chapter_open "$ch" || continue
+        mkdir -p "$VIEW/$d"
+        if [ -f "$COURSE/$d/README.md" ]; then cp "$COURSE/$d/README.md" "$VIEW/$d/README.md"; fi
+        for lesson in $(cd "$COURSE/$d" && compgen -G '[0-9][0-9]-*' || true); do
+            [ -d "$COURSE/$d/$lesson" ] || continue
+            dest="$VIEW/$d/$lesson"
+            mkdir -p "$dest"
+            for f in readme.md exercises.md; do
+                if [ -f "$COURSE/$d/$lesson/$f" ]; then cp "$COURSE/$d/$lesson/$f" "$dest/$f"; fi
+            done
+        done
+    done
+}
+
+cmd_unlock() {
+    local ch=${1:-}
+    [ -n "$ch" ] || die "usage: kestrel unlock <chapter>  (e.g. 04)"
+    case $ch in [0-9][0-9]) ;; *) die "chapter must be two digits, e.g. 04" ;; esac
+    (cd "$COURSE" && compgen -G "${ch}-*" >/dev/null) || die "no chapter $ch in the course tree"
+    touch "$UNLOCKED"
+    grep -qx -- "$ch" "$UNLOCKED" || printf '%s\n' "$ch" >> "$UNLOCKED"
+    if running; then stage_view; fi
+    echo "chapter $ch unlocked"
 }
 
 build_local() {
@@ -79,13 +170,14 @@ cmd_build() {
 cmd_start() {
     have_docker
     docker image inspect "$IMAGE" >/dev/null 2>&1 || die "no image yet -- run: kestrel build"
+    stage_view
     if docker inspect "$NAME" >/dev/null 2>&1; then
         running || docker start "$NAME" >/dev/null
     else
         docker volume create "$VOLUME" >/dev/null
         docker run -d --name "$NAME" --hostname kestrel \
             -v "$VOLUME:/labs" \
-            -v "$COURSE:/course:ro" \
+            -v "$VIEW:/course:ro" \
             "$IMAGE" >/dev/null
     fi
     echo "container '$NAME' is up. enter it with: kestrel enter"
@@ -100,14 +192,13 @@ cmd_enter() {
 }
 
 # Run a lesson's setup.sh inside the container as root, then hand the lab to cadet.
+# setup.sh is NOT in the container's /course view -- it gives away the lab's
+# construction. Pipe it in on stdin and run it from there instead.
 run_setup() {
     local rel=$1
-    docker exec -u root "$NAME" /bin/bash -c "
-        set -euo pipefail
-        [ -f '/course/$rel/setup.sh' ] || { echo 'no setup.sh for $rel' >&2; exit 1; }
-        bash '/course/$rel/setup.sh'
-        chown -R cadet:crew '/labs/$rel' 2>/dev/null || true
-    "
+    [ -f "$COURSE/$rel/setup.sh" ] || die "no setup.sh for $rel"
+    docker exec -i -u root "$NAME" /bin/bash -s < "$COURSE/$rel/setup.sh"
+    docker exec -u root "$NAME" /bin/bash -c "chown -R cadet:crew '/labs/$rel' 2>/dev/null || true"
 }
 
 cmd_seed() {
@@ -138,6 +229,13 @@ cmd_status() {
         echo "  (container down)"
     fi
     echo
+    echo "unlocked chapters (visible in /course):"
+    local d ch
+    for d in $(chapter_dirs); do
+        ch=${d%%-*}
+        if chapter_open "$ch"; then echo "  $d"; fi
+    done
+    echo
     local total captured
     total=$(grep -cve '^[[:space:]]*#' -e '^[[:space:]]*$' "$FLAGFILE" 2>/dev/null || true)
     captured=$( [ -f "$CAPTURED" ] && wc -l < "$CAPTURED" || echo 0 )
@@ -164,6 +262,10 @@ cmd_flags() {
         else
             printf '%s\n' "$id" >> "$CAPTURED"
             echo "correct -- $id captured"
+            if running 2>/dev/null; then
+                stage_view
+                echo "(course view restaged -- this may have unlocked the next chapter)"
+            fi
         fi
         return 0
     fi
@@ -201,6 +303,7 @@ case ${1:-} in
     seed)   shift; cmd_seed "$@" ;;
     reset)  shift; cmd_reset "$@" ;;
     status) shift; cmd_status "$@" ;;
+    unlock) shift; cmd_unlock "$@" ;;
     flags)  shift; cmd_flags "$@" ;;
     nuke)   shift; cmd_nuke "$@" ;;
     -h|--help|help|'') usage ;;

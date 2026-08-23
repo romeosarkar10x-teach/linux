@@ -149,6 +149,30 @@ Verified, not just written:
 
 Chapter 1 set the format; Chapter 2 is the first chapter built to it.
 
+### Container: the `/course` mount narrowed (2026-08-23)
+
+The container bind-mounted the whole repo read-only at `/course`. That handed the student every
+`solutions.md` — answers and flag plaintexts for all sixteen chapters — plus `help.md`,
+`validation.md`, every `setup.sh`, every `story.md` (each carries its chapter's flag text),
+`_handoff/SCENARIOS.md` and `container/flags.tsv`. `grep -r KESTREL /course` was the loudest
+symptom, not the whole problem.
+
+`kestrel start` now stages a student view at `container/.view/` (gitignored) and mounts that:
+
+- per lesson, `readme.md` and `exercises.md` only; per chapter, `README.md`
+- root student docs and the seven student-facing `docs/` files
+- **unlocked chapters only.** Chapters 00 and 01 are always open; chapter N opens once every flag
+  registered for chapter N-1 is in `container/.captured`. `kestrel unlock <ch>` forces one open.
+  `kestrel status` lists what is visible, and capturing a flag restages automatically.
+- `setup.sh` is no longer read from a mount — `run_setup` pipes it to the container on stdin
+
+Verified: `/course` inside the container holds no `solutions.md`, `setup.sh`, `story.md` or
+`flags.tsv`; the nine remaining `KESTREL{` hits are all the literal `KESTREL{...}` placeholder;
+`/course` is still read-only (`touch` fails with `Read-only file system`), so the Chapter 0 and 1
+exercises built on that fact still hold; `kestrel seed`/`reset 02/07` reproduce the lab byte for
+byte and stay idempotent; gating checked (ch03 open with `02/07` captured, ch04 closed, `unlock 06`
+opens it, `unlock 99` refused).
+
 ## Not started
 
 Chapters 3–15 — 82 lessons, all stubs. `docs/CHEATSHEET.md` content. See `TODO.md`.
