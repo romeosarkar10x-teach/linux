@@ -149,6 +149,43 @@ Verified, not just written:
 
 Chapter 1 set the format; Chapter 2 is the first chapter built to it.
 
+**Chapter 3 complete** (Phase 3) — 6 lessons x 6 files, no stubs, chapter README written:
+
+| Lesson | Exercises |
+|---|---|
+| `01-everything-is-a-file` | 22 |
+| `02-inodes` | 28 |
+| `03-hard-vs-symlinks` | 34 |
+| `04-timestamps` | 51 |
+| `05-devices-fifos-sockets` | 52 |
+| `06-incident-03` | 28, incl. the chapter flag |
+
+**215 exercises in Chapter 3.** One flag registered: `03/06`, hash in `container/flags.tsv`.
+
+Verified, not just written:
+- all 6 `setup.sh` run under `kestrel seed` from a clean `/labs` and are idempotent — the incident
+  lab proven by identical `find -printf | md5sum` tree hashes across a second seed
+- every factual claim checked against the running image; the corrections that changed exercises are
+  in the per-lesson commit messages (`ls --time-style=full` and `--sort=mtime` are both invalid
+  spellings; ext4 clamps timestamps at 2446; `mknod` is refused to `cadet` without `CAP_MKNOD`;
+  `/dev/tty` is unusable from `docker exec` without a tty; `touch` without `-h` on a dangling
+  symlink *creates* the target when its parent exists and only fails when the parent is missing;
+  `readlink -f` still succeeds on a fully dead chain because it requires only the components before
+  the last — `readlink -e` is what fails; `find -newer notes/dangling.txt` returns two names
+  because one of them is the hard link)
+- the incident solved from a clean lab: the chain followed, the flag derived, `kestrel flags submit`
+  accepts it
+- flag is not greppable — it is stored in no file; the log line has spaces and a colon where the
+  flag has underscores, so `grep -rl the_link_outlived_the_target /labs` returns nothing
+- **known and accepted:** the flag *line* is readable with Chapter 2 tools alone, since `cat`
+  through a symlink chain needs no `readlink`. The chapter-3 content is in following and describing
+  the chain, not in reaching the bytes; the red herring and the hard-link discrimination are what
+  actually require `ls -i` and `stat -c %h`. Not replanted.
+- trace 3 planted: `deck3/console/strain-feed`, a dangling symlink to
+  `/mnt/eng-array/strain/strain-2187-05-22.csv`, own mtime `2187-05-08 17:44`, unattributed. That
+  mount path is invented here and is the artefact Chapter 15 reads back. `help.md`, `validation.md`
+  and `solutions.md` all forbid naming an author; `notes/dangling.txt` names nobody.
+
 ### Container: the `/course` mount narrowed (2026-08-23)
 
 The container bind-mounted the whole repo read-only at `/course`. That handed the student every
