@@ -91,7 +91,7 @@ One chapter at a time, in syllabus order. Per chapter:
 - [ ] Try to crack the chapter's flag using only earlier chapters' tools — if it falls, replant it
 
 Progress:
-- [ ] Ch 2 Navigating the Filesystem · [ ] Ch 3 Files, Links & Types · [ ] Ch 4 Creating/Copying/Destroying
+- [x] **Ch 2 Navigating the Filesystem — DONE** (178 exercises, flag `02/07`) · [ ] Ch 3 Files, Links & Types · [ ] Ch 4 Creating/Copying/Destroying
 - [ ] Ch 5 Globbing & Quoting · [ ] Ch 6 Searching · [ ] Ch 7 Text Processing · [ ] Ch 8 Streams
 - [ ] Ch 9 Processes · [ ] Ch 10 Users/Groups/Permissions · [ ] Ch 11 Environment & Config
 - [ ] Ch 12 Shell Scripting · [ ] Ch 13 Packages/Docs/Editors · [ ] Ch 14 Archives/Disks/Integrity
@@ -109,6 +109,10 @@ Progress:
 - [ ] **Gamemaster dry-run**: a roleplay scene must not stall, and must not leak the answer
 - [ ] Flag audit: every flag reachable only via its chapter's skill; no plaintext outside
       `solutions.md`; `grep -r KESTREL` over the container finds nothing early
+  - **Known leak, decide in Phase 4:** `_handoff/SCENARIOS.md` lists every chapter's flag text and
+    is mounted at `/course/_handoff` inside the container, so `grep -r KESTREL /course` finds all
+    of them. Either exclude `_handoff/` from the container mount or move the flag texts out of the
+    bible into a file the mount skips.
 - [ ] Sabotage-arc pass: all 16 traces plantable, none load-bearing
 - [ ] Count check: every lesson has Warmup + Core + Dig; every chapter has a Flag and an Incident
 

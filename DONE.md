@@ -1,7 +1,7 @@
 # DONE.md — What exists so far
 
-Status: **planning complete. Phase 1 and Phase 2 complete — skeleton, all shared docs, working
-container, scenario bank, and Chapters 0 and 1 written in full.** Chapters 2–15 are stubs.
+Status: **planning complete. Phases 1 and 2 complete, Phase 3 under way — skeleton, all shared docs, working
+container, scenario bank, and Chapters 0, 1 and 2 written in full.** Chapters 3–15 are stubs.
 
 ## Completed
 
@@ -118,11 +118,40 @@ Verified, not just written:
 - flag is not greppable — `grep -r he_never_finished_typing /labs` returns nothing
 - `dorn-bash-history` mtime set to the `SCENARIOS.md` timeline date, mode 444
 
-Chapter 1 sets the format for Chapters 2–15. **Stop here for the user's review before continuing.**
+**Chapter 2 complete** (Phase 3) — 7 lessons x 6 files, no stubs, chapter README written:
+
+| Lesson | Exercises |
+|---|---|
+| `01-filesystem-tree` | 21 |
+| `02-cd-and-ls-deep` | 25 |
+| `03-the-fhs-tour` | 22 |
+| `04-proc-and-sys` | 24 |
+| `05-tree-and-stat` | 30 |
+| `06-paths-in-anger` | 36 |
+| `07-incident-02` | 20, incl. the chapter flag |
+
+**178 exercises in Chapter 2.** One flag registered: `02/07`, hash in `container/flags.tsv`.
+
+Verified, not just written:
+- all 7 `setup.sh` run under `kestrel seed` from a clean `/labs`, idempotent under `kestrel reset`,
+  and re-runnable as root without leaving a root-owned lab after the next reset
+- every factual claim checked against the running image; the corrections that changed exercises are
+  recorded in the per-lesson commit messages (`/proc/<pid>/exe` points at the interpreter, not the
+  script; `man ulimit` resolves to `ulimit(3)`; `/proc/sys` refusals are EROFS not EACCES;
+  `stat -f` and `df -T` disagree about the ext family; `tree --du -L 1` does not sum; `file -L` on a
+  broken link fails outright; `ls -b` escapes nothing under `C.UTF-8` without `LC_ALL=C`)
+- the incident solved from a clean lab: flag derived from the directory name, `kestrel flags submit`
+  accepts it and rejects the same words with spaces instead of underscores
+- flag is not greppable — it is stored in no file; the on-disk name carries U+00A0 and spaces where
+  the flag has underscores, so `grep -r a_name_you_cannot_type /labs` returns nothing
+- trace 2 planted: `audit-notes.txt`, mtime `2187-05-15 23:41`, unattributed. `help.md` and
+  `validation.md` both forbid supplying an author, and grade "the evidence does not distinguish"
+
+Chapter 1 set the format; Chapter 2 is the first chapter built to it.
 
 ## Not started
 
-Chapters 2–15 — 89 lessons, all stubs. `docs/CHEATSHEET.md` content. See `TODO.md`.
+Chapters 3–15 — 82 lessons, all stubs. `docs/CHEATSHEET.md` content. See `TODO.md`.
 
 ## Current tree
 
