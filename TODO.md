@@ -92,7 +92,8 @@ One chapter at a time, in syllabus order. Per chapter:
 
 Progress:
 - [x] **Ch 2 Navigating the Filesystem — DONE** (178 exercises, flag `02/07`) · [x] **Ch 3 Files, Links & Types — DONE** (215 exercises, flag `03/06`)
-- [x] **Ch 4 Creating/Copying/Destroying — DONE** (208 exercises, flag `04/05`) · [ ] Ch 5 Globbing & Quoting
+- [x] **Ch 4 Creating/Copying/Destroying — DONE** (208 exercises, flag `04/05`)
+- [x] **Ch 5 Globbing & Quoting — DONE** (278 exercises, flag `05/05`, first chained CTF)
 - [ ] Ch 6 Searching · [ ] Ch 7 Text Processing · [ ] Ch 8 Streams
 - [ ] Ch 9 Processes · [ ] Ch 10 Users/Groups/Permissions · [ ] Ch 11 Environment & Config
 - [ ] Ch 12 Shell Scripting · [ ] Ch 13 Packages/Docs/Editors · [ ] Ch 14 Archives/Disks/Integrity

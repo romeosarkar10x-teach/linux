@@ -257,9 +257,50 @@ Verified, not just written:
   exercises 26–27 require the student to state that the evidence for deletion-versus-move is not
   present in what survives. Answering the flag and answering the question are not the same act.
 
+**Chapter 5 complete** (Phase 3) — 5 lessons x 6 files, no stubs, chapter README written:
+
+| Lesson | Exercises |
+|---|---|
+| `01-globs` | 52 |
+| `02-brace-expansion` | 52 |
+| `03-quoting` | 60 |
+| `04-word-splitting` | 64 |
+| `05-incident-05` | 50, incl. the chapter flag and the first chained CTF |
+
+**278 exercises in Chapter 5.** One flag registered: `05/05`, hash in `container/flags.tsv`.
+
+Verified, not just written:
+- all 5 `setup.sh` proven idempotent the `run_setup` way (wipe as root, pipe on stdin, chown, then
+  identical `find . -printf "%p %y %m %U:%G %s\n" | sort | md5sum` twice). Incident lab =
+  `72a941de1c0ef0fc532b2a50d3edb4c6`; `04-word-splitting` = `c6a27af14dae0ad55525fd1ca9a162ba`;
+  `03-quoting` = `ad481e3fa3bc15248c16411f0baf9b58`.
+- every expansion claim measured in bash 5.2.21 inside the image. The ones that rewrote an exercise:
+  - `IFS=:` with `a:::b` gives **4** fields, two empty — non-whitespace separators do not collapse —
+    while a *trailing* separator makes no field at all (`a:b:` is 2).
+  - `IFS=` and `unset IFS` are opposites: one disables splitting, the other restores the default.
+  - `for p in $(cat data/paths.txt)` runs **9** times over a 5-line file; `while IFS= read -r` runs
+    5. `for d in $(ls bays)` runs 11; `for d in bays/*/` runs 8.
+  - an unset variable expanded unquoted produces **no word** — hence `[ $e = x ]` fails with
+    `[: =: unary operator expected` — while `"$u"` produces one empty word.
+  - a bare `IFS=:` inside a function leaks to the caller; `local IFS=:` and a subshell do not.
+  - splitting does not happen on assignment RHS, in `[[ ]]`, `case` or `$(( ))`, or on glob results.
+- the incident solved from a clean lab, one glob, flag accepted by `kestrel flags submit`. Four
+  design defects were caught by *running* the incident and fixed before shipping: the sweep log
+  claimed 3 `rm` failures when the loop produces exactly 1; CTF stage 2 had three files matching its
+  own brace expression; stage 3 was unsolvable as drafted; stage 4's record had 7 fields where the
+  text said 6.
+- flag is not greppable: `grep -r KESTREL /labs` surfaces only 00/04's deliberate tutorial flag and
+  01/07's generated token. The five tag words are one per file and mean nothing apart.
+- the chain is four stages, one skill each (globs, braces, quoting, splitting), every stage fails
+  loudly, and its `STAGE{...}` receipts do not register with `kestrel flags`.
+- trace 5 planted: five files last written at 02:58 against a sweep published four days earlier —
+  the first artefact that is unambiguously chosen rather than careless. No file in the lesson names
+  an author, and `help.md`, `solutions.md` and `validation.md` all forbid supplying one.
+
+
 ## Not started
 
-Chapters 5–15 — 71 lessons, all stubs. `docs/CHEATSHEET.md` content. See `TODO.md`.
+Chapters 6–15 — 66 lessons, all stubs. `docs/CHEATSHEET.md` content. See `TODO.md`.
 
 ## Current tree
 
@@ -277,5 +318,6 @@ Chapters 5–15 — 71 lessons, all stubs. `docs/CHEATSHEET.md` content. See `TO
   02-navigating-the-filesystem/ COMPLETE — 7 lessons
   03-files-links-and-types/    COMPLETE — 6 lessons
   04-creating-copying-destroying/ COMPLETE — 5 lessons
-  05-globbing-and-quoting/ ... 15-capstone-kestrel-breach/     stubs
+  05-globbing-and-quoting/      COMPLETE — 5 lessons
+  06-searching/ ... 15-capstone-kestrel-breach/     stubs
 ```
