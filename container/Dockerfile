@@ -102,6 +102,12 @@ RUN printf 'PATH=/opt/kestrel/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/
  && chmod 0440 /etc/sudoers.d/10-kestrel-path
 
 # --- Fixture cast (chapters 9, 10, 15) -------------------------------------
+# plocate ships as `plocate` with no `locate` name, and its updatedb wants a
+# `plocate` group to own the database. Provide both, so `locate` is the command
+# a student expects and `sudo updatedb` works without further setup.
+RUN groupadd -r plocate \
+ && ln -s /opt/kestrel/bin/plocate /usr/local/bin/locate
+
 RUN groupadd crew \
  && groupadd engineering \
  && groupadd ops \
@@ -111,7 +117,7 @@ RUN groupadd crew \
  && useradd -m -s /usr/sbin/nologin -G ops     ops-bot
 
 # --- The student ------------------------------------------------------------
-RUN useradd -m -s /bin/bash -G crew,sudo cadet \
+RUN useradd -m -s /bin/bash -G crew,sudo,plocate cadet \
  && echo 'cadet:kestrel' | chpasswd \
  && echo 'cadet ALL=(ALL) NOPASSWD:ALL' > /etc/sudoers.d/90-cadet \
  && chmod 0440 /etc/sudoers.d/90-cadet
@@ -120,6 +126,11 @@ RUN useradd -m -s /bin/bash -G crew,sudo cadet \
 RUN echo 'rhea:orbit' | chpasswd \
  && echo 'cass:orbit' | chpasswd \
  && echo 'dorn:orbit' | chpasswd
+
+# Build the locate database now, at image build time. /labs is a volume and is
+# empty here, so a fresh container's index is genuinely stale with respect to
+# every lab -- which is the whole point of lesson 06/06.
+RUN updatedb
 
 RUN mkdir -p /labs && chown cadet:crew /labs && chmod 0775 /labs
 RUN mkdir -p /course

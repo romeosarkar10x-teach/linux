@@ -23,6 +23,7 @@
             cacert
             coreutils-full
             findutils
+            plocate
             gnugrep
             gnused
             gawk
