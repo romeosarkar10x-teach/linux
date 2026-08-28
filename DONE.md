@@ -298,9 +298,30 @@ Verified, not just written:
   an author, and `help.md`, `solutions.md` and `validation.md` all forbid supplying one.
 
 
+## Chapter 6 — searching: grep, regex & find — **COMPLETE**
+
+7 lessons, 1 flag, a four-stage chain, and the course's first roleplay scene (cass).
+
+- every factual claim measured against the container before shipping. Corrections the pass forced:
+  06/06's two `strain-report` copies had identical mtimes so exercise 61 was unanswerable; `which`
+  on a non-executable file prints nothing and returns 1 (the drafted answer was wrong); this image
+  has no `/etc/updatedb.conf`, so `updatedb` indexes `/proc` (2765 entries) and two exercises were
+  rebuilt around the measured behaviour.
+- 06/07's incident: 19 entries excised from a numbered run log, provable only by count-versus-range
+  (701 present, #0001–#0720). The red herring is arithmetic, not fiction — a second monitor's log
+  reads −240 alone and is complete once its rotated `.1` half is counted with it.
+- the chain's stage-2 cliff is deliberate: `grep -c '^#'` counts two header lines, and the wrong
+  deficit lands on a line that fails loudly by name.
+- flag is not greppable: `grep -rl KESTREL` in the lab returns rc 1. The five words are spelled by
+  form fields `f1`–`f5` of a hidden hold record.
+- trace 6 planted: the first artefact that is unambiguously an edit rather than a naming choice.
+  No name appears anywhere in the chapter; `f6` (authorised by) and `f7` (reason) are blank, and
+  `validation.md` fails a student who attributes the deletion to a person.
+- `container/` gained plocate so 06/06 can teach index-versus-walk (`33a9d86`).
+
 ## Not started
 
-Chapters 6–15 — 66 lessons, all stubs. `docs/CHEATSHEET.md` content. See `TODO.md`.
+Chapters 7–15 — 59 lessons, all stubs. `docs/CHEATSHEET.md` content. See `TODO.md`.
 
 ## Current tree
 
@@ -319,5 +340,6 @@ Chapters 6–15 — 66 lessons, all stubs. `docs/CHEATSHEET.md` content. See `TO
   03-files-links-and-types/    COMPLETE — 6 lessons
   04-creating-copying-destroying/ COMPLETE — 5 lessons
   05-globbing-and-quoting/      COMPLETE — 5 lessons
-  06-searching/ ... 15-capstone-kestrel-breach/     stubs
+  06-searching/                COMPLETE — 7 lessons
+  07-text-processing/ ... 15-capstone-kestrel-breach/     stubs
 ```
