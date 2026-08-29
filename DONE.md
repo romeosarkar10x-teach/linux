@@ -1,7 +1,7 @@
 # DONE.md — What exists so far
 
 Status: **planning complete. Phases 1 and 2 complete, Phase 3 under way — skeleton, all shared docs, working
-container, scenario bank, and Chapters 0 through 4 written in full.** Chapters 5–15 are stubs.
+container, scenario bank, and Chapters 0 through 9 written in full.** Chapters 10–15 are stubs.
 
 ## Completed
 
@@ -319,9 +319,47 @@ Verified, not just written:
   `validation.md` fails a student who attributes the deletion to a person.
 - `container/` gained plocate so 06/06 can teach index-versus-walk (`33a9d86`).
 
+## Chapter 7 — text processing — **COMPLETE**
+
+8 lessons, 1 flag, a four-stage chain, and a roleplay scene.
+
+- the incident is arithmetic on a column: a report that is internally consistent and wrong, caught by
+  re-deriving the total from the rows rather than reading the total.
+- every claim measured in the container first; `sort`'s locale collation and `uniq`'s
+  adjacent-only rule were both rebuilt around observed behaviour rather than the drafted answer.
+
+## Chapter 8 — streams, redirection & exit codes — **COMPLETE**
+
+6 lessons, 1 flag, a four-stage chain, and a roleplay scene.
+
+- the incident is fourteen months of `nominal`: a summariser writing warnings to fd 2 while the
+  nightly wrapper kept fd 1 only and sent fd 2 to a recycled path under `/tmp`. Two of the discarded
+  warnings are the panel that is not supposed to clamp, on 2187-05-13 and -14.
+- the flag is spoken on a stream, never written to a file — `grep -r KESTREL` and grepping the words
+  both return rc 1, and that is the lesson rather than a hiding place.
+- the chain's four stages are the `2>&1 >/dev/null` split, a combined-stream count, a here-string on
+  standard input, and an exit status read with `&&`.
+
+## Chapter 9 — processes & job control — **COMPLETE**
+
+7 lessons, 1 flag, a four-stage chain, and a roleplay scene (rhea).
+
+- the incident is a door-log summariser started by hand on 2186-10-06 under the ops-bot account and
+  still spinning at ~50% of a core. Nothing schedules it. Its output file was deleted while still
+  open, so the summary is reachable only through `/proc/<pid>/fd/9`, and the reason it was started
+  lives only in `LR_NOTE_1..4` in its environment.
+- the flag is in no file: `grep -r KESTREL .` and `grep -rlw` for each of its words both return rc 1.
+- corrections the measurement pass forced: `setsid` needs `--fork` inside `docker exec`; `setpriv`
+  replaces `runuser` so the flag words never reach argv; a bash `trap` does not run until the current
+  foreground child returns; `sudo cmd < /proc/PID/environ` fails because the *shell* opens the file.
+- `container/` gained `--cap-add=SYS_PTRACE` (reading another user's `environ`/`cwd`/`fd` is checked
+  as a ptrace access, denied even to root without it) and `--init` (PID 1 was not reaping; 26 zombies
+  accumulated across reseeds). Existing containers must be recreated to pick both up.
+- trace 9 planted: two nights with a zero door count, tying back to chapter 8's discarded warnings.
+
 ## Not started
 
-Chapters 7–15 — 59 lessons, all stubs. `docs/CHEATSHEET.md` content. See `TODO.md`.
+Chapters 10–15 — 39 lessons, all stubs. `docs/CHEATSHEET.md` content. See `TODO.md`.
 
 ## Current tree
 
@@ -343,5 +381,6 @@ Chapters 7–15 — 59 lessons, all stubs. `docs/CHEATSHEET.md` content. See `TO
   06-searching/                COMPLETE — 7 lessons
   07-text-processing/          COMPLETE — 8 lessons
   08-streams-and-redirection/  COMPLETE — 6 lessons
-  09-processes/ ... 15-capstone-kestrel-breach/          stubs
+  09-processes-and-job-control/ COMPLETE — 7 lessons
+  10-users-groups-permissions/ ... 15-capstone-kestrel-breach/   stubs
 ```
