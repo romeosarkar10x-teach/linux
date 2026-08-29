@@ -203,6 +203,13 @@ run_setup() {
     local rel=$1
     [ -f "$COURSE/$rel/setup.sh" ] || die "no setup.sh for $rel"
     docker exec -i -u root "$NAME" /bin/bash -s < "$COURSE/$rel/setup.sh"
+    # Most labs are seeded as root and then handed to the student wholesale.
+    # Chapter 10 is the exception: the point of a permissions lab is that some
+    # of it is NOT yours, so a setup.sh may declare that it has set ownership
+    # itself and must not be chowned over.
+    if grep -q '^# kestrel: manages-ownership' "$COURSE/$rel/setup.sh"; then
+        return
+    fi
     docker exec -u root "$NAME" /bin/bash -c "chown -R cadet:crew '/labs/$rel' 2>/dev/null || true"
 }
 
