@@ -357,9 +357,32 @@ Verified, not just written:
   accumulated across reseeds). Existing containers must be recreated to pick both up.
 - trace 9 planted: two nights with a zero door count, tying back to chapter 8's discarded warnings.
 
+## Chapter 10 — users, groups & permissions — **COMPLETE**
+
+8 lessons, 1 flag, a four-stage chain, and a roleplay scene (rhea, least privilege).
+
+- the incident is a setuid helper in the engineering tree, owned by an account whose holder left
+  three weeks ago and dated 2187-05-18. It reads and hashes, nothing else — and that is the hole:
+  a setuid program does its ordinary thing with somebody else's privileges, for anything you ask.
+- five objects in the lab carry a special bit. One of them is correct as it stands and breaking it
+  breaks other people's work silently for months; deciding which is the audit.
+- the flag is in a `0600 dorn:dorn` file, so `grep -r KESTREL .` returns nothing and no `find` will
+  open it. Exactly one identity can read it and exactly one program has that identity.
+- the chain's four stages are a `-perm` search, an octal mode read correctly (`0004` — a file you
+  own and cannot read, the cliff), a group joined and actually logged into, and setuid semantics.
+- corrections the measurement pass forced: `sudo -u rhea` does *not* bypass a `---` group triad
+  because rhea is in `crew` (kept as a deliberate near-miss; `nobody`/`ops-bot` succeed);
+  the sticky-bit demo was inert while `dropbox` was owned by cadet, since the directory owner may
+  delete anything — fixed by `chown root:crew`; `LAB` must be hardcoded because `run_setup()` pipes
+  setup.sh on stdin; `sg engineering -c` muddied the setgid demo by changing the primary group
+  everywhere, so it was re-measured from a plain shell; `uptime -p` unsupported; `sudo -i` and
+  `sudo -s` both give `HOME=/root`.
+- trace 10 planted: ownership of the helper, and its 2187-05-18 date, three days after the door-log
+  nights chapter 9 left open.
+
 ## Not started
 
-Chapters 10–15 — 39 lessons, all stubs. `docs/CHEATSHEET.md` content. See `TODO.md`.
+Chapters 11–15 — 31 lessons, all stubs. `docs/CHEATSHEET.md` content. See `TODO.md`.
 
 ## Current tree
 
@@ -382,5 +405,6 @@ Chapters 10–15 — 39 lessons, all stubs. `docs/CHEATSHEET.md` content. See `T
   07-text-processing/          COMPLETE — 8 lessons
   08-streams-and-redirection/  COMPLETE — 6 lessons
   09-processes-and-job-control/ COMPLETE — 7 lessons
-  10-users-groups-permissions/ ... 15-capstone-kestrel-breach/   stubs
+  10-users-groups-permissions/  COMPLETE — 8 lessons
+  11-.../ ... 15-capstone-kestrel-breach/   stubs
 ```
