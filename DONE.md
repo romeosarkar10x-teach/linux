@@ -342,5 +342,6 @@ Chapters 7–15 — 59 lessons, all stubs. `docs/CHEATSHEET.md` content. See `TO
   05-globbing-and-quoting/      COMPLETE — 5 lessons
   06-searching/                COMPLETE — 7 lessons
   07-text-processing/          COMPLETE — 8 lessons
-  08-permissions-and-users/ ... 15-capstone-kestrel-breach/     stubs
+  08-streams-and-redirection/  COMPLETE — 6 lessons
+  09-processes/ ... 15-capstone-kestrel-breach/          stubs
 ```
