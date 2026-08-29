@@ -175,7 +175,12 @@ cmd_start() {
         running || docker start "$NAME" >/dev/null
     else
         docker volume create "$VOLUME" >/dev/null
+        # SYS_PTRACE: chapter 9 reads /proc/<pid>/environ for processes the
+        # student did not start. Without the capability that read is denied
+        # even to root, because the kernel checks it as a ptrace access.
         docker run -d --name "$NAME" --hostname kestrel \
+            --cap-add=SYS_PTRACE \
+            --init \
             -v "$VOLUME:/labs" \
             -v "$VIEW:/course:ro" \
             "$IMAGE" >/dev/null
