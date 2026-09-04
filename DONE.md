@@ -380,9 +380,34 @@ Verified, not just written:
 - trace 10 planted: ownership of the helper, and its 2187-05-18 date, three days after the door-log
   nights chapter 9 left open.
 
+## Chapter 11 — environment & shell configuration — **COMPLETE**
+
+6 lessons, 1 flag, a four-stage chain, and a roleplay scene (cass, the tool she does not suspect).
+
+- the chapter builds in order: shell versus environment variable and what a child inherits; `PATH`
+  as an ordered list plus shadowing and the hash table; the four startup files proved by experiment
+  rather than by anybody's summary; aliases versus functions and which one can lie; then `PS1`,
+  `set -o` and `shopt`, where a default nobody chose turns a failed command into a reported success.
+- the incident is one directory and two answers: `GLOBIGNORE='02-navigation:02-navigation/'` **and**
+  `alias ls='ls --hide=02-navigation'` in a generated `~/.config/kestrel/env.sh` three levels into
+  one home. Two mechanisms, not one, which is why stage 2 is the cliff — finding either feels like
+  finishing. The file's own comment says "Generated 2186-03-02"; its mtime is 2187-05-19 02:41.
+- the repair may not delete the file or its lines, because it regenerates on upgrade. It has to be
+  appended downstream of the sourcing block in `.bashrc` — the chapter's own "last line wins" rule.
+- the flag is in no file. `bin/incident-close` decodes a base64 blob once the repair verifies, so
+  `grep -rn 'KESTREL{'` over the lab returns nothing.
+- corrections the measurement pass forced: a `GLOBIGNORE` pattern without the trailing-slash variant
+  does not hide `echo */`; `bash -l -c 'shopt -s expand_aliases; ... ls'` passes spuriously because
+  the whole `-c` string parses before the shopt runs (lesson 04's own rule), so the checkpoint pipes
+  newline-separated commands into `bash -l`; under `TERM=xterm` the default `PS1` carries a
+  title-bar escape, so lesson 05's solution gives both forms; `set -u` on a bare `$NOPE` exits 127
+  under `bash -c` but 1 from a script file; `extglob` is on interactively and off in scripts.
+- trace 11 planted: the file is owned by the account, and the toolchain that writes it never reads
+  it back and never compares two accounts — the systemic finding in `notes/toolchain.txt`.
+
 ## Not started
 
-Chapters 11–15 — 31 lessons, all stubs. `docs/CHEATSHEET.md` content. See `TODO.md`.
+Chapters 12–15 — 25 lessons, all stubs. `docs/CHEATSHEET.md` content. See `TODO.md`.
 
 ## Current tree
 
@@ -406,5 +431,6 @@ Chapters 11–15 — 31 lessons, all stubs. `docs/CHEATSHEET.md` content. See `T
   08-streams-and-redirection/  COMPLETE — 6 lessons
   09-processes-and-job-control/ COMPLETE — 7 lessons
   10-users-groups-permissions/  COMPLETE — 8 lessons
-  11-.../ ... 15-capstone-kestrel-breach/   stubs
+  11-environment-and-config/    COMPLETE — 6 lessons
+  12-.../ ... 15-capstone-kestrel-breach/   stubs
 ```
