@@ -18,6 +18,9 @@ Answers in `~/01-06-answers.md`.
 
 ---
 
+**Ahead of the syllabus.** This lesson uses `wc -l`, `head -1`, which Chapter 4 teaches properly.
+Use it exactly as written here; you are not expected to know it yet.
+
 ## Warmup
 
 **1.** Show the last ten commands you ran, with their numbers.

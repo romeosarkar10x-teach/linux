@@ -9,6 +9,10 @@ If you are stuck, read `help.md`. It asks you questions; it does not hand you co
 
 ---
 
+**Ahead of the syllabus.** This lesson uses `cp`, `mv` (Chapter 4), `find -newer` and `grep`
+(Chapter 6), `chmod` (Chapter 10) before the chapters that teach them. Use them exactly as written
+here; you are not expected to know them yet.
+
 ## Warmup
 
 **1.** Run `stat logs/strain-2187-05-22.csv`. Four time lines come out. Write down, in your own

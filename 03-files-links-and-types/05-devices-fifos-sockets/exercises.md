@@ -15,6 +15,10 @@ If you mangle the lab: `kestrel reset 03/05` from the repo root.
 
 ---
 
+**Ahead of the syllabus.** This lesson uses `head -c`, `wc -c`, `rm` (Chapter 4), `find -type`
+(Chapter 6), `tr`, `sort`, `tee` (Chapter 7), `kill -l` (Chapter 9) before the chapters that teach
+them. Use them exactly as written here; you are not expected to know them yet.
+
 ## Warmup
 
 **1.** `ls -lF zoo`. Seven entries, seven types. Write down the seven type letters in the order they

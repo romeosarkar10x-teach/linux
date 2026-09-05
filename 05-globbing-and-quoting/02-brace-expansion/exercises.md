@@ -7,6 +7,9 @@ cd /labs/05-globbing-and-quoting/02-brace-expansion
 Rule for this lesson, and it is not optional: **`echo` first.** A brace expression that is wrong
 does not fail, it succeeds at something else, and `mkdir` will happily build the something else.
 
+**Ahead of the syllabus.** This lesson uses `find`, which Chapter 6 teaches properly. Use it exactly
+as written here; you are not expected to know it yet.
+
 ## Warmup
 
 1. `echo a{b,c}d`. Now predict `echo a{b,c}{d,e}` before running it, then run it. How many words?

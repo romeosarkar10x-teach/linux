@@ -14,6 +14,10 @@ If you mangle the lab: `kestrel reset 04/02` from the repo root. You will need i
 
 ---
 
+**Ahead of the syllabus.** This lesson uses `find` and `sort` (Chapter 6 and 7), `umask` and `chmod`
+(Chapter 10), `md5sum` (Chapter 14) before the chapters that teach them. Use them exactly as written
+here; you are not expected to know them yet.
+
 ## Warmup
 
 **1.** `echo bay-{01,02,03}`, `echo bay-{1..4}`, `echo bay-{01..06}`. Report all three outputs. State

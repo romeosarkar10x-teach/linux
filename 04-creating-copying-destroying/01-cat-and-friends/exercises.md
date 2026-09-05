@@ -16,6 +16,9 @@ If you mangle the lab: `kestrel reset 04/01` from the repo root.
 
 ---
 
+**Ahead of the syllabus.** This lesson uses `grep -c` and `grep -n`, which Chapter 6 teaches
+properly. Use it exactly as written here; you are not expected to know it yet.
+
 ## Warmup
 
 **1.** `cat logs/panel-07.log`. How many lines, and what is the last one? Confirm the count with `wc`.

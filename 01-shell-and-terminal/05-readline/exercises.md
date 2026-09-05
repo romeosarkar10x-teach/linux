@@ -19,6 +19,9 @@ Answers in `~/01-05-answers.md`.
 
 ---
 
+**Ahead of the syllabus.** This lesson uses `wc -l`, which Chapter 4 teaches properly. Use it
+exactly as written here; you are not expected to know it yet.
+
 ## Warmup
 
 **1.** Type a long command — a `cat` of the long `.log` filename in this lab — but do **not** press

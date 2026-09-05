@@ -10,6 +10,9 @@ Anything destructive goes on a copy:
 d=$(mktemp -d); cp -a names/. "$d/"
 ```
 
+**Ahead of the syllabus.** This lesson uses `grep`, which Chapter 6 teaches properly. Use it exactly
+as written here; you are not expected to know it yet.
+
 ## Warmup
 
 1. Run all three and describe, in one clause each, what stopped and what did not:

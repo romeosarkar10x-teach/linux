@@ -12,6 +12,9 @@ Keep written answers in `~/01-01-answers.md`.
 
 ---
 
+**Ahead of the syllabus.** This lesson uses `ps -p`, which Chapter 9 teaches properly. Use it
+exactly as written here; you are not expected to know it yet.
+
 ## Warmup
 
 **1.** Report which tty you are on, what your shell's PID is, and what program that PID is.

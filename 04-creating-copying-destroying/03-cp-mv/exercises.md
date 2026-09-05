@@ -14,6 +14,10 @@ before you debug.
 
 ---
 
+**Ahead of the syllabus.** This lesson uses `find` (Chapter 6), `sort` and `sed` (Chapter 7),
+`chmod` (Chapter 10) before the chapters that teach them. Use them exactly as written here; you are
+not expected to know them yet.
+
 ## Warmup
 
 **1.** `ls -lF source`. Five entries. Say what type each one is, and which two of them are the same

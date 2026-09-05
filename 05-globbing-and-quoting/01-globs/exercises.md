@@ -17,6 +17,9 @@ If you mangle the lab: `kestrel reset 05/01` from the repo root.
 
 ---
 
+**Ahead of the syllabus.** This lesson uses `grep`, which Chapter 6 teaches properly. Use it exactly
+as written here; you are not expected to know it yet.
+
 ## Warmup
 
 **1.** `cd panels`. Run `ls`, then `echo *`. Same names? Same *order*? Same *layout*? Describe the

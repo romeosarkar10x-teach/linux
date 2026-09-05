@@ -9,6 +9,10 @@ instrument for this whole lesson. Run it whenever you are not sure.
 
 Stuck? `help.md`. Wrecked the lab? `kestrel reset 05/04`.
 
+**Ahead of the syllabus.** This lesson uses `find` (Chapter 6), `cut` and `xargs` (Chapter 7) before
+the chapters that teach them. Use them exactly as written here; you are not expected to know them
+yet.
+
 ## Warmup — seeing the split
 
 1. Print the value of `IFS` in a way that shows you the invisible characters. (`printf '%q\n'` is

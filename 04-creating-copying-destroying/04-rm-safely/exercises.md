@@ -15,6 +15,10 @@ One exercise runs `rm -rf /`. Read it before you decide it is a typo.
 
 ---
 
+**Ahead of the syllabus.** This lesson uses `find -print` and `find -delete` (Chapter 6), `lsof`
+(Chapter 9) before the chapters that teach them. Use them exactly as written here; you are not
+expected to know them yet.
+
 ## Warmup
 
 **1.** `rm junk/panel-01.log`, then `ls junk`. Any output from `rm`? Any confirmation? Report both.
