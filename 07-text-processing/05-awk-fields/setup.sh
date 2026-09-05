@@ -32,11 +32,11 @@ gen_access() {           # $1 = date, $2..$8 = counts, $9 = time offset
   local d="$1" off="${9:-0}" h m s t action deck i
   i=0
   emit() {
-    local a="$1" n="$2" k
-    for k in $(seq 1 "$n"); do
+    local a="$1" n="$2"
+    for _ in $(seq 1 "$n"); do
       t=$(( (i * 281 + off) % 86400 ))     # 281 coprime with 86400 -> no duplicate records
       h=$(( t / 3600 )); m=$(( (t % 3600) / 60 )); s=$(( t % 60 ))
-      case $(( i % 4 )) in 0) action=read ;; 1) action=write ;; 2) action=read ;; 3) action=exec ;; esac
+      case $(( i % 4 )) in 0) action='read' ;; 1) action='write' ;; 2) action='read' ;; 3) action='exec' ;; esac
       deck=$(( (i / 3) % 4 + 1 ))
       printf '%s %02d:%02d:%02d %s %s deck-0%d\n' "$d" "$h" "$m" "$s" "$a" "$action" "$deck"
       i=$(( i + 1 ))

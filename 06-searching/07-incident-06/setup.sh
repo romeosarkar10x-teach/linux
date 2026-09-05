@@ -46,7 +46,7 @@ cd "$LAB"
 
 gen_strain() {
   # $1 date, $2 first seq, $3 last seq, $4 skip-from, $5 skip-to
-  local d=$1 s seq ts h m sec off id
+  local d=$1 seq h m sec off id
   for (( seq=$2; seq<=$3; seq++ )); do
     if [ -n "${4:-}" ] && [ "$seq" -ge "$4" ] && [ "$seq" -le "$5" ]; then continue; fi
     off=$(( (seq - 1) * 15 ))

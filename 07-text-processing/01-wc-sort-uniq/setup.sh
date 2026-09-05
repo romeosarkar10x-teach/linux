@@ -40,17 +40,17 @@ gen_access() {           # $1 = date
   local d="$1" off="${9:-0}" h m s t action deck i
   i=0
   emit() {               # $1 = account, $2 = how many
-    local a="$1" n="$2" k
-    for k in $(seq 1 "$n"); do
+    local a="$1" n="$2"
+    for _ in $(seq 1 "$n"); do
       # 281 is coprime with 86400, so every entry gets a distinct time-of-day
       # and the log contains no two identical records.
       t=$(( (i * 281 + off) % 86400 ))
       h=$(( t / 3600 )); m=$(( (t % 3600) / 60 )); s=$(( t % 60 ))
       case $(( i % 4 )) in
-        0) action=read ;;
-        1) action=write ;;
-        2) action=read ;;
-        3) action=exec ;;
+        0) action='read' ;;
+        1) action='write' ;;
+        2) action='read' ;;
+        3) action='exec' ;;
       esac
       deck=$(( (i / 3) % 4 + 1 ))
       printf '%s %02d:%02d:%02d %s %s deck-0%d\n' "$d" "$h" "$m" "$s" "$a" "$action" "$deck"
@@ -73,7 +73,7 @@ gen_access 2187-06-11 380 88 61 17 9 6 2 617 | sort -k2,2 > logs/access-2187-06-
 # sort|uniq -c|sort -rn idiom can be pointed at directly. The log cannot:
 # counting a *column* of a multi-column file needs lesson 02.
 {
-  emit_names() { local a="$1" n="$2" k; for k in $(seq 1 "$n"); do printf '%s\n' "$a"; done; }
+  emit_names() { local a="$1" n="$2"; for _ in $(seq 1 "$n"); do printf '%s\n' "$a"; done; }
   emit_names rhea 61
   emit_names ops-bot 148
   emit_names cass 33

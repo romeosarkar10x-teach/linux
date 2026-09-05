@@ -38,12 +38,12 @@ printf '%s\n' Rhea Cass Vint Orla Bex Ops-Bot Maintenance > data/roster-display.
 
 # the account column of 2187-06-10, in log order, 600 lines
 {
-  for k in $(seq 1 412); do echo ops-bot; done
-  for k in $(seq 1 96);  do echo rhea; done
-  for k in $(seq 1 54);  do echo cass; done
-  for k in $(seq 1 21);  do echo vint; done
-  for k in $(seq 1 12);  do echo orla; done
-  for k in $(seq 1 4);   do echo bex; done
+  for _ in $(seq 1 412); do echo ops-bot; done
+  for _ in $(seq 1 96);  do echo rhea; done
+  for _ in $(seq 1 54);  do echo cass; done
+  for _ in $(seq 1 21);  do echo vint; done
+  for _ in $(seq 1 12);  do echo orla; done
+  for _ in $(seq 1 4);   do echo bex; done
   echo maintenance
 } | shuf --random-source=<(yes kestrel) > data/log-accounts.txt
 

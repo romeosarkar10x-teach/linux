@@ -15,7 +15,7 @@
 #   orla        40
 #   bex         18
 #   maintenance  6
-#   eng-svc      1   <- 2187-01-18 04:14:22, action=login, deck-02
+#   eng-svc      1   <- 2187-01-18 04:14:22, action='login', deck-02
 #
 # eng-svc appears exactly ONCE in three months, and appears in NEITHER account
 # snapshot in records/ (2187-01 and 2187-06). An account that logged in once and
@@ -24,7 +24,7 @@
 #
 # THE FLAG. notes/forms.txt gives station form AC-9: a finding is three fields,
 #   f1 = the account, written with underscores instead of dashes
-#   f2 = the event, from the vocabulary table (action=login -> logged_in)
+#   f2 = the event, from the vocabulary table (action='login' -> logged_in)
 #   f3 = the frequency word (1 -> once, 2 -> twice, 3+ -> repeatedly)
 # -> KESTREL{eng_svc_logged_in_once}
 # The literal string appears nowhere in the tree. It must be assembled from a
@@ -61,8 +61,8 @@ gen_month() {                 # $1 month (01/02/03), $2 days, $3 offset, then ac
       t=$(( (i * 281 + off) % 86400 ))
       h=$(( t / 3600 )); m=$(( (t % 3600) / 60 )); s=$(( t % 60 ))
       case $(( i % 5 )) in
-        0) action=read ;; 1) action=write ;; 2) action=read ;;
-        3) action=exec ;; 4) action=login ;;
+        0) action='read' ;; 1) action='write' ;; 2) action='read' ;;
+        3) action='exec' ;; 4) action='login' ;;
       esac
       deck=$(( (i / 3) % 4 + 1 ))
       printf '2187-%s-%02d %02d:%02d:%02d %s %s deck-0%d\n' \
