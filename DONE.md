@@ -523,5 +523,5 @@ Chapter 15 — 5 lessons, all stubs. `docs/CHEATSHEET.md` content. See `TODO.md`
   12-shell-scripting/          COMPLETE — 9 lessons
   13-packages-docs-editors/    COMPLETE — 6 lessons
   14-archives-disks-integrity/  COMPLETE — 5 lessons
-  15-capstone-kestrel-breach/   stub
+  15-capstone-kestrel-breach/  COMPLETE — 5 lessons
 ```
