@@ -176,3 +176,24 @@ is fair game as evidence.
 
 **51.** A pipeline is `a | b | c`. Draw or describe every fd 1 and fd 2 in it, and say how many of
 the six point at your terminal.
+
+## Dig
+
+**52.** Every exercise so far has assumed fd 1 goes *somewhere*. Take it away and see what a program
+does about it.
+
+First, `bash -c 'exec 1>&-; ls /nonexistent'` — fd 1 is closed, fd 2 is not. Quote what you get and
+the exit status. Then `bash -c 'exec 1>&-; echo hi'`, and `bash -c 'exec 1>&-; sort /etc/hostname'`.
+Quote all three messages and statuses, and say which layer produced each one.
+
+Second, a descriptor that exists and always fails: `echo hi > /dev/full`. Quote the message and the
+status, and say how it differs from the closed-fd case — the write reached the kernel this time.
+
+Third, the reasoning. A program that writes to fd 1 without checking the return value of `write(2)`
+does not notice any of this. Say what such a program would do with the closed descriptor and with
+`/dev/full`, what its exit status would be, and why that is worse than crashing. Then check whether
+`sort` is such a program — its behaviour above is evidence — and say what `sort` had to do to produce
+the message it did.
+
+*Done looks like:* four commands quoted with statuses, the layer named for each, and the argument
+about unchecked writes.

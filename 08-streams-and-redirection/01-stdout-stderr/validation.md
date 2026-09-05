@@ -54,6 +54,31 @@ conversation. It is a fail if they still say so after exercise 14.
   what question they were answering.
 - Did not edit anything under `bin/` in place. Experiments belong in `scratch/`.
 
+## 7. The missing descriptor (exercise 52)
+
+All four commands must be run and quoted with statuses: `ls` 2 (unaffected — nothing was written to
+fd 1), `echo` 1 with `bash: … write error: Bad file descriptor`, `sort` 2 with both `fflush failed:
+'standard output'` and `write error`, and `echo hi > /dev/full` 1 with `No space left on device`.
+
+**Must be present.** The distinction between `EBADF` and `ENOSPC`: the first means fd 1 is not a
+descriptor at all and no write reached a destination; the second means the write was made and the
+destination refused it. A student who calls both "the write failed" and stops has not done the
+exercise.
+
+The message prefix must be attributed — `bash:` for the builtin, `sort:` for the external program —
+because it identifies who noticed.
+
+**The argument.** An unchecked write yields no output, no diagnostic, and exit 0, and that is worse
+than a crash because everything downstream of `&&` proceeds. Credit the link back to exercise 33.
+
+**Distinction.** Noticing that stdio buffering means an unchecked-`printf` program would miss this
+even if it checked each write, and that `sort`'s `fflush` check at exit is what catches it. A student
+who concludes "so coreutils are safe and my scripts are not" has drawn the right lesson.
+
+**Red flag.** Asserting that with fd 1 closed the next file a program opens becomes fd 1 and gets
+the output written into it. The mechanism is real (open returns the lowest free descriptor), but it
+does not happen in these commands, and the student should be asked to show it rather than repeat it.
+
 ## Sign-off scenario
 
 Give them this and listen:

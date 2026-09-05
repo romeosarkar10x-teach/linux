@@ -289,6 +289,80 @@ of `c` is the terminal. All three fd 2s are the terminal. So of the six output d
 point at your terminal and two are pipes. That is why a noisy middle stage of a pipeline is invisible
 in the output and unmissable on the screen.
 
+## Added exercise 52
+
+**52.** Closed fd 1, three programs:
+
+```
+$ bash -c 'exec 1>&-; ls /nonexistent'
+ls: cannot access '/nonexistent': No such file or directory
+$ echo $?
+2
+```
+
+`ls` had nothing to say on fd 1 anyway — its error went to fd 2, which is untouched — and its status
+is its usual 2 for a missing operand. Closing fd 1 changed nothing, because nothing was written to
+it. That is the control case.
+
+```
+$ bash -c 'exec 1>&-; echo hi'
+bash: line 1: echo: write error: Bad file descriptor
+$ echo $?
+1
+```
+
+The message is prefixed `bash:` — this is the **shell** reporting, because `echo` is a builtin and
+the failing `write(2)` happened inside bash itself. `EBADF` is the kernel's answer: fd 1 is not open,
+so there is nothing to write to. Status 1.
+
+```
+$ bash -c 'exec 1>&-; sort /etc/hostname'
+sort: fflush failed: 'standard output': Bad file descriptor
+sort: write error
+$ echo $?
+2
+```
+
+An external program this time, so the prefix is `sort:`. Two messages, and they are the interesting
+part — see below.
+
+The three layers: the kernel returned `EBADF`; libc's stdio surfaced it at the `fflush`; and the
+program (or the shell, for the builtin) chose to print a diagnostic on fd 2 and set a non-zero
+status. `ls` never reached any of them.
+
+**`/dev/full`:**
+
+```
+$ echo hi > /dev/full
+bash: line 5: echo: write error: No space left on device
+$ echo $?
+1
+```
+
+Different failure entirely. The descriptor is open and valid, the `write(2)` was made, and the kernel
+accepted the call and returned `ENOSPC` — `/dev/full` is a device that exists precisely to do that.
+The closed-fd case failed *before* the write was attempted on anything real (`EBADF` means "that
+number is not a descriptor"); this one failed at the destination. Both arrive at the caller as a
+short/failed `write` return, which is the point: a program that checks its writes cannot tell the two
+apart without reading `errno`, and a program that does not check cannot tell either from success.
+
+**The unchecked-write argument.** A program that calls `write(1, …)` and ignores the return value
+sees nothing in either case. It produces no output, prints no diagnostic, and exits 0 — a clean
+success with the results silently discarded. That is worse than crashing in exactly the way this
+lesson keeps insisting: a crash is loud and stops the pipeline, whereas exit 0 with no output is
+indistinguishable from "there was nothing to report", and every `&&` downstream of it will run. This
+is the same failure shape as exercise 33's, one layer lower — there the status was right and the
+stream was wrong; here both are wrong and nothing says so.
+
+`sort` is **not** such a program, and its two messages show the work it had to do. Because stdio
+buffers, `sort`'s `write` calls mostly succeed into a userspace buffer and the real write happens at
+flush time — so a program that only checked its `printf`s would still miss this. `sort` explicitly
+checks the return of `fflush` on stdout at exit (`fflush failed: 'standard output'`), and then
+reports the overall condition (`write error`) and exits 2 rather than 0. GNU coreutils do this
+deliberately; most hand-written scripts and many small tools do not. Checking that the last flush
+succeeded is the minimum a program must do to be honest about its own output, and it is the thing
+that gets left out.
+
 ## Authoring notes
 
 - `fdreport` uses `/proc/$$/fd`, not `/proc/self/fd`. The first draft used `self` inside `$( )` and
