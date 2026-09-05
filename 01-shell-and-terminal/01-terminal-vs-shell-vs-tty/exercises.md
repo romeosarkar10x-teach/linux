@@ -118,3 +118,213 @@ what each session is currently running. Find out which, and say what the differe
 two commands in one sentence each.
 
 *Done looks like:* both outputs and the two sentences.
+
+---
+
+## Core — the three things you keep confusing
+
+**16.** Write down, in your own words and without looking at the readme, one sentence each for
+*terminal*, *shell*, and *tty*. Then read the readme's definitions and mark which of your three was
+furthest off.
+
+*Done looks like:* three sentences, and an honest note about which one you had wrong.
+
+**17.** Name the program that is drawing the window or pane you are typing into, and the program
+that is interpreting what you type. They are different programs. Say which is which.
+
+*Done looks like:* two program names, correctly assigned.
+
+**18.** `echo $0` in your login shell, then `echo $0` inside `bash`, then inside `sh`. Three
+readings. What is `$0` actually reporting?
+
+*Done looks like:* three outputs and one sentence.
+
+**19.** Run `ps` with no arguments. Every process it lists has something in common. What?
+
+*Done looks like:* the listing and the common property named.
+
+**20.** Now run `ps -p $$ -o pid,ppid,tty,comm`. Read each column aloud and say what it means.
+
+*Done looks like:* the output and four short glosses.
+
+**21.** Start a child shell, and from inside it run the exercise-20 command again. Which column
+changed, and which stayed the same?
+
+*Done looks like:* both outputs and the comparison.
+
+**22.** From that child shell, run `ps -p $PPID -o pid,comm`. Whose PID is that?
+
+*Done looks like:* the output and the answer in one word.
+
+**23.** Exit back to your first shell and run `echo $PPID` there. What is the parent of your login
+shell, and why is that a different kind of answer from exercise 22's?
+
+*Done looks like:* the PID, the program name, and the sentence.
+
+---
+
+## Core — the terminal is a file
+
+**24.** `echo hello > /dev/pts/N`, using your own tty's number. Where did the text appear, and which
+program put it there?
+
+*Done looks like:* the observed behaviour and the answer.
+
+**25.** Open a second session, find *its* tty, and write a line to it from your first session.
+Describe exactly what the person in the second session sees.
+
+*Done looks like:* the command and a description of the effect.
+
+**26.** Explain, in two sentences, why exercise 25 works at all — what a tty device file is a handle
+*to*.
+
+*Done looks like:* two sentences that do not use the word "magic".
+
+**27.** `ls -l /dev/pts/` — how many pseudo-terminals exist right now, and does the count match the
+number of sessions you have open?
+
+*Done looks like:* the listing, the count, and the comparison.
+
+**28.** `cat` with no arguments and no redirection. Type a line. Where is that line coming *from*?
+Name the file. Then leave `cat` without killing it.
+
+*Done looks like:* the file named and the exit keystroke recorded.
+
+**29.** `echo $$ > /dev/null` and `echo $$ > /dev/pts/N`. Same command shape, two very different
+destinations. Say in one sentence what both destinations have in common.
+
+*Done looks like:* the sentence, with the word "file" in it.
+
+---
+
+## Core — sessions and what survives them
+
+**30.** Run `ps -o pid,ppid,tty,comm -t "$(tty | sed 's|/dev/||')"` — or just `ps` — and count the
+processes on your tty. Now start a child shell and count again.
+
+*Done looks like:* two counts and the difference explained.
+
+**31.** In one session, `echo "$$" > ~/first-pid.txt`. Open a second session and `cat` that file.
+Did the second session know the first session's PID before you wrote it down? Why not?
+
+*Done looks like:* the two outputs and one sentence about what is and is not shared between
+sessions.
+
+**32.** Set a shell variable — `MARKER=one` — in your first session. Check `echo $MARKER` in the
+second session. Explain the result.
+
+*Done looks like:* the empty output and the explanation.
+
+**33.** Now `export MARKER=one` and check the second session again. Same result. Say why `export`
+did not help, and what it *would* have helped with.
+
+*Done looks like:* the result and the corrected mental model.
+
+**34.** Leave a child shell running in one session. From another session, run `ps` and find it. What
+does that tell you about whether "your shells" are private to your terminal?
+
+*Done looks like:* the sighting and one sentence.
+
+---
+
+## Experiment — predict before you run
+
+**35.** **Predict first.** Will `tty` inside `$(...)` print the same device as `tty` on its own? Write
+your prediction, then run `echo "$(tty)"` and `tty`.
+
+*Done looks like:* prediction, both outputs, and an explanation of any surprise.
+
+**36.** **Predict first.** `ps` piped into `cat` versus `ps` alone. Will the output differ? Predict,
+then run both.
+
+*Done looks like:* prediction, both outputs, and the reason.
+
+**37.** **Predict first.** You run `bash` three times without exiting. How many `bash` processes will
+`ps` show on your tty? Predict the number, then check.
+
+*Done looks like:* the predicted number, the actual number, and the arithmetic.
+
+**38.** **Predict first.** From the innermost of those shells, will `echo $$` ever match the outermost
+shell's PID? Predict yes or no, then prove it.
+
+*Done looks like:* the prediction and the proof.
+
+**39.** **Predict first.** If you close the terminal window while a child shell is running, what
+happens to the child? Predict, then try it in a session you do not mind losing, and check from
+another session.
+
+*Done looks like:* prediction, observation, and one sentence. Chapter 9 explains the mechanism.
+
+---
+
+## Stretch
+
+**40.** Write a single command line that prints your tty, your PID and your shell's program name on
+one line, separated by spaces. Use `printf`, not three `echo`s.
+
+*Done looks like:* one line of output and the command that produced it.
+
+**41.** Someone sends you a bug report that says "the command failed in my terminal". List the four
+facts from this lesson you would ask for, and say what each one would rule in or out.
+
+*Done looks like:* four facts, each with a reason.
+
+**42.** `consoles/` in the lab holds one file per station console. Read them and say which of those
+consoles could be a real serial terminal and which must be a pseudo-terminal, giving your reasoning
+from the names alone.
+
+*Done looks like:* a split list and the reasoning.
+
+**43.** Explain to a colleague, in three sentences, why `$SHELL` is a bad way to find out what shell
+you are running right now.
+
+*Done looks like:* three sentences that mention login, environment, and the actual process.
+
+**44.** Your answers file for this lesson should already identify this session. Add one sentence
+saying what would change in that identification if you reconnected tomorrow, and what would not.
+
+*Done looks like:* one sentence separating the stable facts from the per-session ones.
+
+---
+
+## Dig
+
+**45.** `ps` has a flag that shows the process hierarchy as a tree. Find it and use it to show your
+nested shells. The notes do not name it.
+
+*Done looks like:* a tree output with the nesting visible.
+
+**46.** There is a command that prints the name of the terminal *the running process's parent* is
+on, without `ps`. Find any route to that answer and describe it.
+
+*Done looks like:* the route and the answer.
+
+**47.** `/dev/tty` is not the same file as `/dev/pts/3`, but writing to it usually has the same
+effect. Find out what `/dev/tty` actually is, and say when the two would differ.
+
+*Done looks like:* an explanation and one concrete case.
+
+**48.** Find out what a *session leader* is and whether your shell is one. `ps -o sid,pid` is a
+starting point.
+
+*Done looks like:* the readings and a definition in your own words.
+
+**49.** Find out how many pseudo-terminals this system will allow at once, and where that limit is
+recorded. It is a file.
+
+*Done looks like:* the number and the path.
+
+**50.** `stty -a` prints your terminal's settings. Find the setting that decides which key sends an
+interrupt, and confirm it matches the key you actually use.
+
+*Done looks like:* the relevant line and the key named.
+
+**51.** Break your terminal on purpose: `cat` a binary file such as `/bin/ls` to the screen. Then
+find the command that puts the terminal back in a sane state. Do this last.
+
+*Done looks like:* the mess, the recovery command, and one sentence on what got broken.
+
+**52.** After exercise 51, say what "the terminal" turned out to be holding that neither the shell
+nor the program you ran was holding.
+
+*Done looks like:* one sentence naming terminal state as the answer.
