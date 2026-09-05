@@ -202,6 +202,246 @@ you can test for equality. The default output is an English sentence whose wordi
 
 ---
 
+## Added exercises 31–52
+
+**31.** `tree -P 'survey.txt' bays`:
+```
+bays
+├── deck-3
+│   ├── bay-1
+│   │   ├── panels
+│   │   └── survey.txt
+│   └── bay-2
+│       ├── panels
+│       └── survey.txt
+└── deck-4
+    └── bay-1
+        └── survey.txt
+
+8 directories, 3 files
+```
+`-P` filters **files**, not directories. `tree` still has to walk every directory to find out whether
+anything inside matches, and by default it prints the ones it walked — including `panels`, which
+contains no match at all.
+
+**32.** `tree -P 'survey.txt' --prune bays` → `6 directories, 3 files`; the two `panels` directories
+are gone. They are separate options because pruning is a second pass over the result: `-P` decides
+which files to show, `--prune` decides whether a directory that ended up empty is worth printing. You
+can want an unpruned filtered tree (to see the shape you searched) or a pruned unfiltered one (to
+drop genuinely empty directories).
+
+**33.** `tree -I 'panels' bays` → `7 directories, 3 files`, and it shows `loop -> ../..`, which
+exercise 31's output did not: `-P` filters files and a symlink counts as a file, so `loop` failed the
+`survey.txt` pattern. `-I` excludes by name and `loop` is not named `panels`.
+
+**34.**
+```
+$ tree --noreport -L 1 bays
+bays
+├── deck-3
+└── deck-4
+
+$ tree --dirsfirst -a -L 2 bays
+bays
+├── .calibration
+│   └── offsets.txt
+├── deck-3
+│   ├── bay-1
+│   ├── bay-2
+│   └── loop -> ../..
+├── deck-4
+│   └── bay-1
+└── .treeignore-note
+
+8 directories, 2 files
+```
+(`--dirsfirst` sorts within each level; `.treeignore-note` is a file and lands last, after the
+directories, despite the dot.)
+
+**35.** `tree -J ledger`:
+```
+[
+    {"type":"directory","name":"ledger","contents":[
+        {"type":"file","name":"README"},
+        {"type":"file","name":"reserved.img"}
+    ]}
+,    {"type":"report","directories":1,"files":2}
+]
+```
+The last element is not part of the tree at all — it is the count line, as an object with
+`"type":"report"`. A consumer walks the array and skips or splits off that entry rather than trying
+to treat it as a filesystem node; it is the JSON equivalent of the human "1 directory, 2 files".
+
+**36.** `tree --inodes --device -L 1 ledger`:
+```
+[ 300179 66309]  ledger
+├── [ 300181 66309]  README
+└── [ 300180 66309]  reserved.img
+```
+`reserved.img` is inode 300180 on device 66309. **The pair is the identity.** Inode numbers are only
+unique within one filesystem, so two names are the same file exactly when device *and* inode match;
+identical contents on two different inodes are two files that happen to agree today.
+
+**37.** `stat -c '%n %A %a %U:%G %F' manifest/*`:
+```
+manifest/check.sh       -rwxr-xr-x 755 root:root regular file
+manifest/dangling.link  lrwxrwxrwx 777 root:root symbolic link
+manifest/drift.txt      -rw-r--r-- 644 root:root regular file
+manifest/empty.log      -rw-r--r-- 644 root:root regular empty file
+manifest/hullscan       -rwxr-xr-x 755 root:root regular file
+manifest/notes.txt      -rw-r--r-- 644 root:root regular file
+manifest/readme.txt     -rw-r--r-- 644 root:root regular file
+manifest/strain.csv     -rw-r--r-- 644 root:root regular file
+manifest/subsystem      drwxr-xr-x 755 root:root directory
+manifest/telemetry.txt  -rw-r--r-- 644 root:root regular file
+```
+Not regular files: `dangling.link` (symbolic link) and `subsystem` (directory). `empty.log` is a
+`regular empty file` — `stat` folds "size is zero" into the type word; `ls` can only show you a `0`
+in the size column and leave you to notice it.
+
+**38.**
+```
+$ stat -c '%N' manifest/dangling.link manifest/hullscan
+'manifest/dangling.link' -> '../accounting/.staging/dump-2187-06-12.bin'
+'manifest/hullscan'
+```
+`%N` quotes the name and appends the target only when there is one. `ls -l` gives you the arrow only
+inside a fixed nine-column line you would have to cut apart, and it quotes nothing, so a name with a
+space in it is ambiguous. `%N` is safe to hand to another program.
+
+**39.** `stat -c '%w' manifest/notes.txt` (or `%W` for the epoch form) → a birth time of *today* —
+the moment `setup.sh` ran. `stamps/read-me.txt` has an mtime of `2187-06-01`. There is no
+contradiction and no lie: `touch -m -d` writes any value it is told into the mtime field, while birth
+time is stamped by the kernel at creation and `touch` cannot reach it. A file can therefore claim to
+have been modified 160 years before it existed.
+
+**40.**
+```
+$ stat -L manifest/dangling.link
+stat: cannot statx 'manifest/dangling.link': No such file or directory
+```
+Same cause as exercise 15: `-L` means "report on the target", the target does not exist, so there is
+nothing to report on and the call fails. Without `-L` both tools describe the link itself, which
+exists and is perfectly readable. The wording differs only because each tool names the syscall it
+tried (`statx` here, `open` in `file`'s message).
+
+**41.**
+```
+$ stat -c '%n %s' stamps/*
+stamps/chmodded.txt 29
+stamps/read-me.txt 30
+stamps/written.txt 31
+
+$ stat --printf '%n %s|' stamps/*
+stamps/chmodded.txt 29|stamps/read-me.txt 30|stamps/written.txt 31|
+```
+`-c` appends a newline to every record; `--printf` emits exactly the format you wrote and also
+interprets escapes like `\t` and `\n`. Inside a loop that is assembling one line, use `--printf` —
+with `-c` you would have to strip the newlines back out afterwards.
+
+**42.** Prediction to write down first; then:
+```
+$ cp ledger/reserved.img ~/a.img
+$ ls -l ~/a.img   → 52428800
+$ du -h  ~/a.img  → 0
+```
+The size is preserved and the disk cost is not. Modern `cp` defaults to `--sparse=auto`: it reads the
+source, notices long runs of zeros, and instead of writing them it seeks past them, leaving the copy
+holed too. It reproduced the file's *contents*, which include no data at all.
+
+**43.**
+```
+$ cat ledger/reserved.img > ~/c.img ; du -h ~/c.img          → 50M
+$ cp --sparse=never ledger/reserved.img ~/b.img ; du -h ~/b.img → 50M
+```
+All three copies are 52428800 bytes by `ls -l`. Only `cp`'s default preserves the hole. The rule:
+**a hole survives only when the copying tool goes looking for it.** `cat` is a byte pump — it reads
+zeros and writes zeros, and the filesystem dutifully allocates 50 MB of blocks to hold them.
+`--sparse=never` asks `cp` to behave like `cat` on purpose.
+
+**44.**
+```
+$ touch -r stamps/read-me.txt ~/r.txt
+$ stat -c '%y %x' ~/r.txt
+2187-06-01 08:00:00.000000000 +0000   2187-06-20 08:00:00.000000000 +0000
+```
+Both mtime and atime are copied. **ctime is not**, and cannot be: ctime records when the inode last
+changed, and `touch -r` just changed the inode, so ctime is now. No interface exists to set it —
+which is exactly why it is the field worth trusting.
+
+**45.** `du -sh --exclude='*.bin' .` → `188K`, against `41M` for the whole lab. One file,
+`accounting/.staging/dump.bin`, is 99.6% of the lab. (`ledger/reserved.img` is not in the excluded
+set and still contributes nothing, because it is sparse.)
+
+**46.** `du -sh --inodes .` → `40`. It counts inodes, not bytes. That number diagnoses two failures
+`du -sh` cannot see: a filesystem that reports "No space left on device" while `df -h` shows free
+space (the inode table is full), and a directory that is slow to list not because it is large but
+because it holds a hundred thousand tiny entries.
+
+**47.**
+```
+$ du -h --max-depth=1 .
+40M  ./accounting
+16K  ./stamps
+8.0K ./ledger
+64K  ./bays
+84K  ./manifest
+41M  .
+```
+Same five figures as exercise 19, plus the total, in one walk of the tree instead of five. (`-s` is
+just `--max-depth=0`.)
+
+**48.** `du --time -h manifest`:
+```
+84K   2026-09-05 15:55   manifest
+```
+That column is the newest mtime found anywhere in the subtree. So it tells you when something under
+`manifest` last changed, and nothing about **which** thing: the 26K `hullscan` and the 23-byte
+`notes.txt` were written seconds apart by the same script, and this column cannot separate them. A
+directory that shows a recent time may have had one trivial file touched.
+
+**49.** `du -sh accounting` → `40M`; `du -s --si accounting` → `42M`. `-h` divides by 1024
+(mebibytes); `--si` divides by 1000 (megabytes). **The disk vendor prints the `--si` number** — which
+is why a "50 GB" disk mounts with less than 47 of what your file manager calls GB.
+
+**50.**
+```
+$ tree -h --du -a manifest  → 61K used in 2 directories, 9 files
+$ du -sh manifest           → 84K
+```
+They are measuring different quantities. `tree --du` sums **apparent sizes**: 54080 bytes of file
+content plus 4096 for `manifest` and 4096 for `subsystem` = 62272 ≈ 61K. `du` sums **allocated
+blocks**: `hullscan` and `readme.txt` are 26936 bytes each but occupy 56 512-byte blocks = 28672
+each; the five small text files occupy a full 4096 each despite holding 23–46 bytes; plus 4096 per
+directory. 57344 + 20480 + 8192 = 86016 = 84K exactly. The 23K gap is rounding *up to block
+boundaries*, seven times over.
+
+**51.**
+```
+$ stat -c '%s %b %B' ledger/reserved.img   → 52428800 0 512
+$ stat -c '%s %b %B' manifest/notes.txt    → 23 8 512
+```
+`%s` is the apparent size; `%b × %B` is what is actually allocated. For `reserved.img`:
+0 × 512 = 0 bytes on disk against 52428800 claimed — `du -h` says 0, `du -h --apparent-size` says
+50M. For `notes.txt`: 8 × 512 = 4096 bytes on disk against 23 claimed — `du -h` says 4.0K,
+`du -h --apparent-size` says 23. The two questions are "how much room does this take" (`%b × %B`) and
+"how many bytes would I have to transmit" (`%s`), and the answer can be larger *or* smaller.
+
+**52.** `du -ah manifest`:
+```
+4.0K  manifest/check.sh        (33 bytes by ls -l)
+0     manifest/dangling.link   (42 bytes by ls -l)
+28K   manifest/hullscan        (26936 bytes by ls -l)
+0     manifest/empty.log       (0 bytes by ls -l)
+```
+The two extremes are `check.sh` — `du` says 4.0K, `ls` says 33 — and `dangling.link`, where `du` says
+0 and `ls` says 42. `du` is right about **disk consumed**: the 33-byte script still occupies a whole
+block, and the symlink's 42-byte target string is stored inside the inode itself (a "fast symlink")
+and costs no data block at all. `ls` is right about **how many bytes the file contains**. Neither is
+a size in the sense the other means.
+
+---
+
 ## Tutor notes
 
 - Exercises 20–22 and 27 are one idea approached four times. If a student groups them together

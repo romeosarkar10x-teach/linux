@@ -149,3 +149,103 @@ total.
 **30.** `file` has an option that prints the MIME type instead of the human description. Find it, and
 report the MIME types of `manifest/telemetry.txt`, `manifest/drift.txt` and `manifest/hullscan`.
 Say why a program would prefer this output to the default.
+
+---
+
+## Core — `tree` as an instrument
+
+**31.** Print the `bays` tree showing only entries named `survey.txt`. Report the count line. Three
+files match, but the directory count is 8 — explain what the extra directories are doing in a listing
+that was supposed to show only matches.
+
+**32.** Add the option that removes those from the output. Report the new count line and say, in one
+sentence, why the two options are separate rather than one.
+
+**33.** Print `bays` with the `panels` directories excluded. Report the count line, and name the one
+entry that appears here but not in exercise 31's output.
+
+**34.** Print the first level of `bays` with the trailing count line suppressed. Then print it again,
+with hidden entries and two levels, with directories sorted ahead of files. Report both.
+
+**35.** `tree` can emit machine-readable output. Find the option, run it on `ledger`, and quote the
+result. Point at the one element that is not a file or a directory, and say what a program consuming
+this would do with it.
+
+**36.** Print `ledger` with each entry's inode number and the device it lives on. Report both numbers
+for `reserved.img`. Then say which of the two you would use to tell "the same file under two names"
+apart from "two files with the same contents".
+
+---
+
+## Core — `stat` as a report generator
+
+**37.** Produce one line per entry in `manifest` containing the name, the permission string, the
+octal mode, `owner:group`, and the type as `stat` words it. One command. Report the two entries whose
+type is not `regular file`, and the one whose type is `regular empty file` — a phrase `ls` has no way
+to print.
+
+**38.** Print `manifest/dangling.link` and `manifest/hullscan` with the format that quotes the name
+and, for a link, appends its target. Quote both lines. Say what that one format code saves you
+compared to running `ls -l` and reading the arrow.
+
+**39.** Ask `stat` for the **birth** time of `manifest/notes.txt`. Report it. Then compare it against
+the mtime of `stamps/read-me.txt` and explain why the file "created" recently can honestly carry a
+modification time from 2187.
+
+**40.** Run `stat -L` on `manifest/dangling.link`. Quote the error exactly. Then explain, using
+exercise 15's answer, why `-L` and `file -L` fail for the same reason with different wording.
+
+**41.** `stat -c` ends each line with a newline; `stat --printf` does not. Demonstrate both on the
+three files in `stamps`, and say which one you would use inside a loop that builds a single line of
+output.
+
+---
+
+## Experiment — predict before you run
+
+**42.** **Predict first, in writing.** You copy `ledger/reserved.img` into your home directory with
+plain `cp`. Predict what `ls -l` and `du -h` will say about the copy. Then do it, and report both.
+Then say what `cp` had to do to produce that result.
+
+**43.** **Predict first.** Now produce the copy a second way — `cat ledger/reserved.img > c.img` —
+and a third with `cp --sparse=never`. Predict `du -h` for both before running. Report all three
+numbers together, and state the rule: which tool preserves the hole and which fills it.
+
+**44.** **Predict first.** `touch -r` copies timestamps from a reference file. Predict which of the
+three timestamps it will copy from `stamps/read-me.txt`, then check with `stat`. One of the three is
+not copied — name it and say why it cannot be.
+
+**45.** **Predict first.** Predict `du -sh .` for the whole lab with `--exclude='*.bin'`. Then run it.
+Report the number, and say what it proves about which single file the lab's size is.
+
+**46.** `du` can count something other than bytes. Find the option, run it on the whole lab, and
+report the number. Say which of two failures that number would diagnose that `du -sh` could not.
+
+---
+
+## Stretch
+
+**47.** Produce a one-line-per-top-level-directory breakdown with an explicit depth limit rather than
+running `du -sh` five times. Report the command and confirm the five numbers match exercise 19's.
+
+**48.** `du` can print a timestamp beside each total. Find the option, run it on `manifest`, and
+report the line for `manifest` itself. Say which of the directory's timestamps that column is, and
+what it therefore does **not** tell you about when the largest file inside changed.
+
+**49.** Print the lab's totals in SI units rather than binary ones. Report what `accounting` comes to
+in each, and say which of the two numbers a disk vendor prints on the box.
+
+---
+
+## Dig
+
+**50.** Run `tree -h --du -a manifest` and `du -sh manifest`. The two totals differ by more than 20K.
+Report both, and account for the gap precisely — it is not rounding.
+
+**51.** For `ledger/reserved.img`, report `%s`, `%b` and `%B` from `stat`. Multiply the last two and
+compare against the first. Then do the same for `manifest/notes.txt`, whose size is 23 bytes. State
+the arithmetic that turns those three numbers into each of the two answers `du` can give.
+
+**52.** `du -ah manifest` lists every file, not just the directory total. Run it and compare the
+per-file numbers against `ls -l`. Name the two entries where the two tools disagree most, in opposite
+directions, and say which tool is right about what.
