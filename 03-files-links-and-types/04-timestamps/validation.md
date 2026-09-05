@@ -304,6 +304,26 @@ whether they wrote one and then reconciled it with what happened.
 
 ---
 
+## Added exercise (52)
+
+**52.** Must name **birth time** and both format specifiers (`%w`, `%W`). The before/after must be
+explicit about all four: mtime set, atime set, ctime now, birth unchanged. The reason `touch` has no
+option for it is the marking — a value written once by the kernel is worth something precisely
+because no interface rewrites it; "touch just doesn'''t support it yet" is wrong and should be
+corrected.
+
+Both `find` lines must be quoted, including `invalid predicate`. A clean pass explains the split:
+`stat` reports what `statx` says about *this file on this filesystem*, `find` reports what this build
+supports *at all*. The filesystem must be named (`overlayfs` in the container) — an answer that omits
+it has skipped the part that makes birth time untrustworthy.
+
+**Distinction.** Noticing that `cp` gives the copy a new inode and therefore a new birth time, so the
+timestamp does not survive being copied.
+
+**Red flag.** Presenting birth time as the reliable one because "it cannot be forged". It cannot be
+set through `touch`; it can be absent entirely, and a fresh copy of a file carries a fresh one. It is
+the least portable timestamp here, not the strongest.
+
 ## Roll-up
 
 The student has finished this lesson when they can, unprompted:

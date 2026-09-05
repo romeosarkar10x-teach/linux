@@ -183,3 +183,16 @@ still work if that order were reversed? Say precisely what would break.
 **51.** atime is a hint, not a fact — `relatime` is why. Find the other mount options Linux offers
 for atime handling (`man 8 mount`, search for `atime`). For each, say what a forensic investigator
 would gain or lose.
+
+**52.** There is a fourth timestamp. Run `stat -c '%w|%W|%x|%y|%z' <file>` on a file you have just
+created and identify which field is the one you have not met. Then set that file's mtime back to
+2187 with `touch -d` and read all five fields again: say which of them moved and which did not, and
+why the one that did not move is the only timestamp in this lesson that `touch` has no option for.
+
+Then find the contradiction. Ask `find` to search on that timestamp — `find . -newerBt 2026-01-01` —
+and quote what it says. Explain how `stat` can report a value that `find` says the system cannot
+provide, and what that means for relying on it. Name the filesystem you are on (`stat -f -c %T .`)
+in your answer.
+
+*Done looks like:* the field named, the before/after comparison, both `find` errors quoted, and the
+explanation.

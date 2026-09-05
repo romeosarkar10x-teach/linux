@@ -381,6 +381,59 @@ metadata-restrictive operations last is the general rule; here it is documentati
 
 ---
 
+## Added exercise 52
+
+**52.** The fourth timestamp is **birth time** — creation time — printed by `%w` in human form and
+`%W` as seconds since the epoch. It is not one of the three this lesson has been about, and it is the
+only one that describes an event that happens exactly once.
+
+Before and after:
+
+```
+$ touch a
+$ stat -c '%w|%W|%x|%y|%z' a
+2026-09-05 21:52:26.325332846 +0000|1788645146|2026-09-05 21:52:26…|…|…
+$ touch -d '2187-01-01' a
+$ stat -c '%w|%W|%y' a
+2026-09-05 21:52:26.325332846 +0000|1788645146|2187-01-01 00:00:00.000000000 +0000
+```
+
+mtime moved to 2187 as asked; atime moved with it (a bare `touch -d` sets both); ctime moved to
+*now*, because the inode changed. **Birth time did not move**, and there is no `touch` option that
+moves it. That is not an oversight: `touch`'s whole job is to write timestamps into an inode, and
+birth time is a claim about when the inode came into existence — a value the kernel writes once, at
+creation, and never rewrites. An interface for changing it would make it a value nobody could rely
+on, which is exactly what ctime's read-only-ness buys you (exercise 30) and exactly what mtime's
+writability costs you.
+
+Now the contradiction:
+
+```
+$ find . -newerBt 2026-01-01
+find: This system does not provide a way to find the birth time of a file.
+find: invalid predicate `-newerBt'
+```
+
+Two messages, and the order matters: `find` parses the predicate, discovers birth time is
+unsupported here, prints the first message, and then reports the predicate as invalid because it
+could not be used.
+
+How can `stat` print a value `find` says is unavailable? Because they are asking different questions
+of different layers. `stat` calls `statx(2)`, which returns a mask saying which fields are valid;
+GNU `stat` prints `%w` as `-` when the mask says birth time is absent, and prints a number when it is
+present. The container's root filesystem here is **overlayfs** (`stat -f -c %T .`), whose upper layer
+is a real filesystem that does record `btime`, so `statx` returns one. `find`'s check is a
+compile-and-platform-level one — whether this build of findutils on this system has a usable
+birth-time interface at all — and it answers no, statically, without ever looking at your file.
+
+What that means practically: birth time is the least portable timestamp on Linux. Its availability
+depends on the filesystem (ext4 with a large enough inode, xfs, btrfs, overlayfs's upper layer — yes;
+older ext3, some network and FUSE filesystems — no), on the kernel having `statx`, and on each tool
+having been built to use it. A value that is present on your machine and absent on the next one is
+not something to build a check on, and it is certainly not something to present as evidence without
+saying which filesystem produced it. Note too that copying a file creates a new inode: `cp` gives the
+copy today's birth time even under `-a`, so birth time survives no move that crosses a filesystem.
+
 ## Notes for the instructor
 
 - The single most valuable outcome here is exercise 25's discipline: *"this inode was written today,
