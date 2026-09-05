@@ -458,9 +458,44 @@ time estimate and on nothing else).
   provenance (04), configs recording what changed and never why (05), a source file with an mtime
   and no author (06).
 
+## Chapter 14 — archives, disks & integrity — **COMPLETE**
+
+5 lessons, 1 flag, a three-stage chain, and a roleplay scene (the captain, who wants the export
+signed off today, never lies, and offers "bad export, we'll re-run it" at exactly the wrong moment).
+
+- tar, then compression, then `df`/`du`, then checksums, then an incident that needs all four.
+- lesson 01's seven archives are built with `--sort=name --owner=0 --group=0 --mtime=@epoch` so that
+  `sha256sum archives/*` is stable across `setup.sh` runs — lessons 04 and 05 depend on hashes not
+  moving underneath them.
+- measured behaviour drove rewrites again: `tar -cfz out.tar.gz a` creates a 10240-byte file named
+  `z`; `--strip-components=6` on 5-component members extracts nothing and exits 0; CRLF checksum
+  manifests **pass** on coreutils 9.11, contradicting the usual folklore; an unparseable manifest
+  line is skipped and `sha256sum -c` still exits 0 without `--strict`; `gzip` on 200000 bytes of
+  urandom produces 200053.
+- lesson 02's opening pitch was dishonest in draft — the three lab logs total 147316 bytes — so
+  exercise 14 now makes the student measure that and say so. `zip`/`unzip` (02) and `ncdu` (03) are
+  not installed on purpose: the student installs them with chapter 13's skills and purges them
+  again, which also keeps the image clean.
+- lesson 03's genuine surprise is a deleted-but-open file, built in `/dev/shm` (a 64M tmpfs the
+  student can actually fill): after `rm`, `df` holds at 20M while `du` reports 0, and `lsof +L1`
+  shows NLINK 0 with `(deleted)`. It is deliberately *not* part of the incident, so the incident
+  has one answer.
+- the incident is an export that passes every checksum it carries and is missing 235 samples across
+  five days — the five days the deck's independently recorded maximum crossed the 6.0 clamp
+  threshold. Each day's peak sample sits past the truncation point, so the correlation is
+  demonstrable from the archive rather than asserted. The manifest's hash column matches the
+  delivered short files while its count column does not, which dates the hashes to after the
+  shortfall.
+- red herrings, no decoys: a `.gz` that is bzip2, and one manifest hash with a transposed character
+  pair over an intact file, which tempts a student to discard the whole manifest. `validation.md`
+  fails a report that discards it, that stops at "bad export", or that names a person.
+- the constraint is the professional point: the archive must be byte-identical afterwards and the
+  student must be able to *show* it. A correct finding with no baseline hash is a fail, and
+  `manifest-audit` exits 3 the moment the bytes move.
+
 ## Not started
 
-Chapters 14–15 — 10 lessons, all stubs. `docs/CHEATSHEET.md` content. See `TODO.md`.
+Chapter 15 — 5 lessons, all stubs. `docs/CHEATSHEET.md` content. See `TODO.md`.
 
 ## Current tree
 
@@ -487,5 +522,6 @@ Chapters 14–15 — 10 lessons, all stubs. `docs/CHEATSHEET.md` content. See `T
   11-environment-and-config/    COMPLETE — 6 lessons
   12-shell-scripting/          COMPLETE — 9 lessons
   13-packages-docs-editors/    COMPLETE — 6 lessons
-  14-.../ 15-capstone-kestrel-breach/   stubs
+  14-archives-disks-integrity/  COMPLETE — 5 lessons
+  15-capstone-kestrel-breach/   stub
 ```
