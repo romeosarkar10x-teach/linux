@@ -405,9 +405,62 @@ Verified, not just written:
 - trace 11 planted: the file is owned by the account, and the toolchain that writes it never reads
   it back and never compares two accounts — the systemic finding in `notes/toolchain.txt`.
 
+## Chapter 12 — shell scripting — **COMPLETE**
+
+9 lessons, 1 flag, a four-stage chain, and a roleplay scene (ops-bot, which records status and
+never state).
+
+- the order is the point: a file that runs (shebang, `x` bit, source versus run); arguments; `if`
+  as "run a command and check its status", with `[`, `[[` and `test` as three answers; loops, and
+  a counter that dies in a subshell; `case` and functions, and a fourth mode nobody reads down to;
+  `read` and `(( ))`, and exactly where shell arithmetic stops; `set -euo pipefail`, `trap`,
+  `mktemp`, and what the header still misses; then shipping `stationctl` with `--help`, exit codes
+  and `PATH`.
+- the incident is an audit the student is forbidden to turn into a repair: six scripts, and the
+  question is which of them write to a fixed path under `data/` — including one that writes via
+  `mv`, one via `sed -i`, and one that writes nothing at all. The nightly log line
+  `cleanup complete, 0 files removed` has never been false; it counts removals and says nothing
+  about writes.
+- stage 3 is the cliff: students answer seven because seven records were rewritten, and the
+  question asks how many were *lowered*. The skipped ones were already under the threshold — not
+  the leading zero that lesson 06 primed them to blame.
+- the flag is base64 inside `bin/audit-attest` and printed only on a correct report, so the lab is
+  not greppable and reading the checker shortcuts nothing.
+
+## Chapter 13 — packages, docs & editors — **COMPLETE**
+
+6 lessons, 1 flag, a four-stage chain, and a roleplay scene (rhea, who moves on evidence and a
+time estimate and on nothing else).
+
+- `apt` first, then `dpkg` underneath it, then the manual offline, then the three routes for
+  installing something that never came from a repository, then editing in place.
+- measured behaviour drove several rewrites: `man -f fstab` says `nothing appropriate` because the
+  mount(8) family was never shipped, so lesson 03 uses `sudoers(5)` and keeps fstab as the
+  deliberate contrast; `apropos -e passwd` still returns `getpwent_r(3)` because `-e` matches whole
+  words in *descriptions*; timing `rg` against `grep -r` measured nothing at this lab's size, so
+  lesson 04 compares `rg -l` = 76 against `grep -rl` = 79 and the hidden-file default instead;
+  `apt-cache policy htop` reports `Installed: (none)` while `htop` runs from the Nix side, which is
+  the honest groundwork the incident needs.
+- lesson 02's downgrade experiments can leave dpkg interrupted; lesson 04's validation makes
+  purging `ripgrep`/`ncdu` a hard gate, because leaving `ripgrep` installed defuses the incident's
+  opening move.
+- the incident is two sources at equal priority and one tool: the candidate is 1.4.0 from a source
+  nobody configured on purpose, and the rule that produces it — highest version wins — is the
+  transferable lesson. The counterweight is `libhatch-telemetry0`, which looks exotic and is an
+  ordinary dependency of the station's own `deck-verify`; `validation.md` fails any report that
+  calls it a finding.
+- stage 3 is the cliff and the only stage that changes the station rather than reading it. It
+  refuses two ways: exit 3 while the source file is configured, exit 4 if the wrong version is
+  installed. The flag is base64 inside the installed binary; `grep -r KESTREL` over the lab and
+  over `/usr/bin/deck-verify` returns nothing.
+- the chapter's arc material accumulates as facts and never as an accusation: an unsigned source
+  (02), a man page naming a file its package does not ship (03), `/usr/local` recording no
+  provenance (04), configs recording what changed and never why (05), a source file with an mtime
+  and no author (06).
+
 ## Not started
 
-Chapters 12–15 — 25 lessons, all stubs. `docs/CHEATSHEET.md` content. See `TODO.md`.
+Chapters 14–15 — 10 lessons, all stubs. `docs/CHEATSHEET.md` content. See `TODO.md`.
 
 ## Current tree
 
@@ -432,5 +485,7 @@ Chapters 12–15 — 25 lessons, all stubs. `docs/CHEATSHEET.md` content. See `T
   09-processes-and-job-control/ COMPLETE — 7 lessons
   10-users-groups-permissions/  COMPLETE — 8 lessons
   11-environment-and-config/    COMPLETE — 6 lessons
-  12-.../ ... 15-capstone-kestrel-breach/   stubs
+  12-shell-scripting/          COMPLETE — 9 lessons
+  13-packages-docs-editors/    COMPLETE — 6 lessons
+  14-.../ 15-capstone-kestrel-breach/   stubs
 ```
