@@ -86,7 +86,8 @@ rule in one sentence.
 what the error says. Then run it. Then explain in two or three sentences why the kernel refuses this
 even for root: what would go wrong in the tree, and which everyday commands would stop terminating.
 
-**21.** **Predict first.** `df /labs /home/cadet` reports both as the same physical device. Predict
+**21.** **Predict first.** `df /labs /home/cadet` reports identical size, used and available
+figures for both. Predict
 what `ln /labs/03-files-links-and-types/02-inodes/roster/copy.txt /home/cadet/x` does. Run it, record
 the exact error, then run `stat -c '%d %n' /labs /home/cadet` and reconcile the two outputs: `df` and
 the kernel disagree about what "the same device" means, and only one of them decides.
@@ -123,3 +124,106 @@ though every name is gone. You will meet this again in Chapter 9.
 
 **28.** `df -i` reports inodes rather than blocks. Run it on `/labs`. Report how many inodes exist
 and how many are used, and explain what failure mode this number predicts that `df -h` cannot.
+
+## Core — counting links exactly
+
+**29.** `ls -lai roster` prints six lines including `.` and `..`. Give the inode number of each of
+the six, and say which two of the six numbers appear twice in the listing and why they do.
+
+**30.** `roster/.` and `roster/..` have inode numbers you have already seen elsewhere. For each,
+name another path in the lab that resolves to the same inode, and prove it with `ls -id`.
+
+**31.** `decks` has link count 5. Delete `decks/deck-5` (it has one file in it — remove that first)
+and report the new count. Then make two new subdirectories and report it again. State the arithmetic
+rule as a formula.
+
+**32.** `stat -c '%h'` on a brand-new empty directory gives 2. Explain both links precisely, then say
+what the link count of a directory tells you about its contents that `ls` would take longer to
+answer.
+
+**33.** Reset the lab. In a scratch directory of your own, create one file and three hard links to
+it. After each `ln`, record the link count. Then remove them one at a time, recording the count after
+each `rm`. Present the whole sequence as a table of eight rows.
+
+**34.** From exercise 33: at which step did the data actually become unreachable, and what was the
+link count immediately before that step? Say which single number the kernel is watching.
+
+**35.** `stat -c '%b %B %s'` on `roster/roster.txt` reports blocks, block size and byte size. Run it
+on all three names of that inode. Explain why the three answers are identical in one sentence, and
+what that means for the disk cost of adding a fourth name.
+
+## Core — deletion, and what it removes
+
+**36.** `rm` removes a name. Show, without deleting anything, which directory's *contents* would
+change if you ran `rm roster/.backup/names.txt` — and which file's contents would not.
+
+**37.** Create a file with two names in one directory. Delete one name with `rm`, and delete the
+other by overwriting it with `mv` from a third file. Show that the link count went 2, 1, and then the
+inode disappeared — and say which of the two operations is the one that actually calls `unlink`.
+
+**38.** Make a 100 KB file, hard-link it, and run `du -sh` on the directory. Then run
+`du -ah .`. Report which of the two names `du` charged for, and what `du --count-links` changes.
+Explain in one sentence why the default is the right one for "how much disk am I using".
+
+**39.** Open a file for reading, delete it while the descriptor is still open, then look at
+`ls -l /proc/self/fd/`. Quote what the link shows. Say what the link count is now and why the data is
+still there.
+
+**40.** From exercise 39: state the exact condition under which the kernel frees the blocks. It is
+two conditions, not one, and `man 2 unlink` gives both.
+
+**41.** `locked/notes.txt` is mode 444 and you can delete it. `sealed/bolted.txt` is mode 666 and you
+cannot. Write the rule as a single sentence that mentions both the file and the directory, then say
+which of the two objects the mode bits of a *file* never govern.
+
+## Experiment — predict before you run
+
+**42.** **Predict first.** You run `cp -r roster roster-copy`, then
+`stat -c '%i %h %n' roster-copy/*`. Predict the link counts. Then run it, and explain what `cp -r`
+did to the relationship between `roster.txt` and `crew-list.txt`.
+
+**43.** **Predict first.** Now try `cp -a roster roster-a` and check the same numbers. Predict
+whether the two names inside the *copy* share an inode, and whether either of them shares an inode
+with the original. Then run it and account for both answers.
+
+**44.** **Predict first.** `cp -l` makes hard links instead of copying. Predict what
+`cp -rl roster /home/cadet/roster-l` does, then run it and quote the error. Reconcile it with
+exercise 21.
+
+**45.** **Predict first.** Predict whether `ln -s decks decks-slink` succeeds, given that exercise 20
+showed `ln decks decks-link` does not. Run it. Then say, in two sentences, what a symlink can
+represent that a hard link cannot, and why the loop argument from exercise 20 does not forbid it.
+
+**46.** **Predict first.** Create a file, note its inode number, delete it, and create ten new files
+in a row. Predict whether the old number reappears among them. Run it, report the result, and say why
+you must not treat either outcome as a rule.
+
+## Stretch
+
+**47.** `stat -c '%d:%i'` gives the pair that identifies a file uniquely on one running system. Run
+it on `/labs/…/roster/roster.txt` and on `/home/cadet`. Report both pairs, and say what has to be
+true of two paths for them to be the same file — both halves, not one.
+
+**48.** Two names for one inode can have different *paths* but never different permissions, owners or
+timestamps. Prove one of those: `chmod` one name and show the other changed too. Then say where the
+mode bits are stored, and why that makes the result inevitable rather than surprising.
+
+**49.** Reproduce the "editor broke my hard link" effect deliberately and then repair it: starting
+from `roster.txt` and `crew-list.txt` sharing an inode, split them, then re-join them so the link
+count is 2 again and both names show the *newer* content. Say which of the two contents you had to
+choose, and why re-joining is a decision rather than an undo.
+
+## Dig
+
+**50.** `find -samefile` and `find -inum` both located the three names in exercise 26. Construct the
+case where they give different answers: name a situation in which `-inum` returns a path that
+`-samefile` does not, and say what the deciding factor is.
+
+**51.** `df -i /labs` reports the inode table. Report total, used and free, then compute how many
+bytes per inode the filesystem was formatted with, using `df /labs` for the block figures. Say what
+that ratio implies about the kind of files the filesystem was expected to hold.
+
+**52.** A backup tool copies a tree containing a thousand names on ten inodes. Describe what the
+restored tree looks like under `cp -r`, under `cp -a`, and under a tool that records inode numbers
+and re-creates the links. Then say which of the three you would want for `/etc` and which for a
+directory of build artefacts, with a reason each.

@@ -212,3 +212,231 @@ Filesystem       Inodes   IUsed    IFree IUse% Mounted on
 Inodes are a finite, separately-counted resource fixed at format time on ext4. A filesystem can run
 out of them while `df -h` still shows free space, and file creation fails with `No space left on
 device` on a disk that visibly has room. Millions of tiny files is the usual cause.
+
+---
+
+## Added exercises 29–52
+
+**29.**
+```
+$ ls -lai roster
+300258 drwxr-xr-x 3 cadet crew 4096 … .
+300257 drwxr-xr-x 7 cadet crew 4096 … ..
+300259 drwxr-xr-x 2 cadet crew 4096 … .backup
+300261 -rw-r--r-- 1 cadet crew   38 … copy.txt
+300260 -rw-r--r-- 3 cadet crew   38 … crew-list.txt
+300260 -rw-r--r-- 3 cadet crew   38 … roster.txt
+```
+(Numbers vary per seed; the relationships do not.) `300260` appears twice because `roster.txt` and
+`crew-list.txt` are two names for one inode. The other repeat is not inside this listing: `.` is
+`roster` itself, so `300258` is also what `ls -id roster` prints from the parent.
+
+**30.** `roster/.` is `roster`, and `roster/..` is the lab directory:
+```
+$ ls -id roster roster/. roster/.backup/..
+300258 roster    300258 roster/.    300258 roster/.backup/..
+$ ls -id . roster/..
+300257 .         300257 roster/..
+```
+`.` and `..` are entries stored in the directory, not shell syntax — the shell passes them through
+untouched and the kernel resolves them like any other name.
+
+**31.**
+```
+$ rm decks/deck-5/status.txt && rmdir decks/deck-5
+$ stat -c %h decks     → 4
+$ mkdir decks/deck-6 decks/deck-7
+$ stat -c %h decks     → 6
+```
+**link count = number of subdirectories + 2** — one for the directory's own name in its parent, one
+for its own `.`, and one `..` from each child.
+
+**32.** The two links of an empty directory are its name in the parent and its own `.`; there are no
+children to contribute `..`. So `%h` answers "how many subdirectories does this have?" in a single
+`stat` — subtract 2 — without `ls` having to read the directory and `stat` every entry, which on a
+directory with a million entries is the difference between instant and minutes.
+
+**33.**
+```
+step                       %h
+echo hi > a                 1
+ln a b                      2
+ln a c                      3
+ln a d                      4
+rm d                        3
+rm c                        2
+rm b                        1
+rm a                        0 (inode gone; stat fails)
+```
+
+**34.** At the last `rm`, when the count went from **1** to 0. The kernel watches exactly one number
+— the link count in the inode — and frees the blocks when it reaches zero (and see exercise 40 for
+the second condition). Every earlier `rm` removed a name and nothing else.
+
+**35.**
+```
+$ stat -c '%b %B %s' roster/roster.txt roster/crew-list.txt roster/.backup/names.txt
+8 512 38
+8 512 38
+8 512 38
+```
+They are identical because all three names lead to one inode, and blocks, block size and size are
+fields *of the inode* — there is nothing per-name to differ. A fourth name costs one directory entry
+(a few bytes inside an existing directory block) and no file data at all.
+
+**36.** `roster/.backup`'s contents would change — the entry `names.txt` would be removed from it.
+`roster/roster.txt`'s contents would not change by a byte; only its link count, which lives in the
+inode, would drop from 3 to 2. Deleting a name is a write to a *directory*.
+
+**37.**
+```
+$ echo one > a ; ln a b ; stat -c %h a      → 2
+$ rm b ; stat -c %h a                       → 1
+$ echo two > c ; mv c a ; stat -c '%i %h' a → new inode, 1
+```
+`rm` calls `unlink` directly. `mv` onto an existing name calls `rename`, which unlinks the
+destination as part of the same operation — so the old inode's count reaches 0 there too, but the
+call that did it was `rename`, not `unlink`.
+
+**38.**
+```
+$ head -c 100000 /dev/zero > f1 ; ln f1 f2
+$ du -sh .                → 104K
+$ du -ah .                → 100K ./f1   /   104K .
+$ du -sh --count-links .  → 204K
+```
+`du` charged for `f1` only and skipped `f2` — it remembers inodes it has already counted. The default
+is right for "how much disk am I using" because the 100 KB exists once: counting it twice would
+report space that does not exist.
+
+**39.**
+```
+$ echo data > op ; exec 3<op ; rm op
+$ ls -l /proc/self/fd/
+lr-x------ … 3 -> /tmp/t3/op (deleted)
+```
+The link count is now 0. The data is still there because the descriptor is still open: the last name
+is gone but the file is not, and `/proc` will still show you the path it used to have, marked
+`(deleted)`.
+
+**40.** `man 2 unlink`: the inode and its blocks are freed when the link count reaches zero **and**
+no process holds the file open. Both must be true. This is why `rm` on a 40 GB log gives no space
+back while the daemon writing it is still running — and why restarting the daemon suddenly does.
+
+**41.** **Whether you may delete a name is governed by the write and execute bits on the directory
+that holds it; whether you may change a file's contents is governed by the write bit on the file.**
+A file's own mode bits never govern the existence of its names — `locked/notes.txt` at 444 sits in a
+writable directory and goes; `sealed/bolted.txt` at 666 sits in a mode-555 directory and stays,
+though you can append to it freely.
+
+**42.**
+```
+$ cp -r roster roster-copy
+$ stat -c '%i %h %n' roster-copy/*
+4109132 1 roster-copy/copy.txt
+4109133 1 roster-copy/crew-list.txt
+4109134 1 roster-copy/roster.txt
+```
+Every link count is 1. `cp -r` read each name and wrote a separate new file, so the relationship is
+gone: the copy has three independent files with identical contents where the original had one file
+with three names. Editing one in the copy no longer changes the others.
+
+**43.**
+```
+$ cp -a roster roster-a
+$ stat -c '%i %h %n' roster-a/roster.txt roster-a/crew-list.txt
+4109138 3 roster-a/roster.txt
+4109138 3 roster-a/crew-list.txt
+```
+Inside the copy they **do** share an inode — `-a` implies `--preserve=links`, which notices that two
+sources are the same inode and links the destinations together. Neither shares an inode with the
+original: `--preserve=links` reproduces the link *structure*, it does not link back to the source.
+That is the distinction `cp -l` gets wrong in exercise 44.
+
+**44.**
+```
+$ cp -rl roster /home/cadet/roster-l
+cp: cannot create hard link '/home/cadet/roster-l/roster.txt' to '…/roster/roster.txt': Invalid cross-device link
+```
+Same `EXDEV` as exercise 21, and for the same reason: `-l` asks for hard links **to the source
+files**, and a hard link cannot cross a filesystem boundary. Within one filesystem `cp -rl` works and
+gives you a tree that costs almost nothing.
+
+**45.**
+```
+$ ln -s decks decks-slink
+$ ls -l decks-slink   → lrwxrwxrwx … decks-slink -> decks
+```
+It succeeds. A symlink can name a **directory**, a target on another filesystem, or a path that does
+not exist at all, because it stores a *path string* rather than an inode reference. The loop argument
+does not apply because path resolution knows a symlink when it sees one: it counts them and gives up
+with `ELOOP` after about forty, whereas a hard-linked directory loop would be indistinguishable from
+real structure and nothing walking the tree could detect it.
+
+**46.**
+```
+$ touch a ; stat -c %i a   → 4109144
+$ rm a ; touch b ; stat -c %i b → 4109144
+```
+On this run the number came straight back on the very first new file. Neither outcome is a rule: the
+allocator is free to reuse a freed inode immediately or never, and the answer depends on the
+filesystem, the allocation policy and what else is running. **An inode number identifies a file only
+for as long as you hold something that keeps it alive** — an open descriptor, or a name you know has
+not been removed. Recording a number now and matching it later identifies nothing.
+
+**47.**
+```
+$ stat -c '%d:%i %n' /labs/03-files-links-and-types/02-inodes/roster/roster.txt /home/cadet
+66309:300260 …/roster/roster.txt
+51:…         /home/cadet
+```
+Two paths are the same file when **both** halves match: the same inode number on the same device.
+Inode 300260 exists on device 66309 and, almost certainly, a completely unrelated inode 300260 exists
+on device 51 — which is exactly why `find -inum` needs a starting directory and why backup tools
+store the pair.
+
+**48.**
+```
+$ chmod 600 roster/crew-list.txt
+$ ls -l roster/roster.txt   → -rw------- 3 cadet crew 38 …
+```
+Mode, owner, group, size and timestamps all live in the **inode**, not in the directory entry. A
+directory entry holds a name and an inode number and nothing else, so there is nowhere for a per-name
+permission to be stored. The result is not a side effect; it is the only thing that could happen.
+
+**49.**
+```
+$ echo 'zaid  ops' >> roster/crew-list.txt      # both names still one inode
+$ cp roster/crew-list.txt /tmp/t && mv /tmp/t roster/crew-list.txt   # split: %h now 1 and 1
+$ rm roster/roster.txt && ln roster/crew-list.txt roster/roster.txt  # re-joined: %h 2
+```
+Re-joining required **choosing which of the two contents survives** — here `crew-list.txt`'s, the
+newer one — and destroying the other. Splitting a link loses the fact that they were the same file
+but keeps two sets of bytes; re-linking keeps one set and discards the other. There is no operation
+that merges them, which is why this is a decision and not an undo.
+
+**50.** `-inum` matches a number on whatever filesystem it walks into, so point it at a starting
+directory that spans a mount point and it will happily return a file on the *other* filesystem that
+merely happens to carry the same inode number — a completely unrelated file. `-samefile` compares the
+device as well as the inode and will not. **The deciding factor is whether more than one filesystem
+is in the search path** (exercise 47's other half).
+
+**51.**
+```
+$ df -i /labs   → 23912448 total, 2624162 used, 21288286 free (11%)
+$ df /labs      → 375356492 1K-blocks
+```
+375356492 KB ÷ 23912448 inodes ≈ **16 KB of space per inode**, which is `mke2fs`'s default ratio.
+It is a bet that the average file is at least that big. A filesystem holding millions of small files
+— a mail spool, a package cache, a node_modules tree — exhausts the inode table long before it fills
+the disk, and the fix is a re-format with a smaller `-i`, not a bigger disk.
+
+**52.** Under `cp -r` the restored tree has **a thousand independent files**: a hundred times the disk
+usage, and an edit to one no longer shows in the other names. Under `cp -a` the link structure inside
+the tree is reproduced — ten inodes, a thousand names — though the numbers themselves are new. A tool
+that records inode numbers and re-creates the links (`tar` and `rsync -H` both do) gets the same
+result by the same reasoning. For `/etc` you want the links preserved: sharing is often deliberate
+there, and silently multiplying a config file into independent copies means the next edit fixes one
+of them. For build artefacts, `cp -r` is fine and sometimes preferable — the links are an
+optimisation the build tool made, nothing depends on them, and independent copies are easier to
+reason about when you start deleting things.
