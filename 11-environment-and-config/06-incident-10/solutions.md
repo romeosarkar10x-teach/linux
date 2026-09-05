@@ -166,6 +166,93 @@
     it is happening. Only the second one can be true for one person and false
     for another at the same instant.
 
+## Added exercises 51–52
+
+**51.** With only the first pattern:
+
+```
+$ mkdir -p /tmp/g/{02-navigation,a,b}; touch /tmp/g/f1 /tmp/g/.hidden; cd /tmp/g
+$ GLOBIGNORE='02-navigation'
+$ echo *
+.hidden a b f1
+$ echo */
+02-navigation/ a/ b/
+```
+
+`echo *` hides it. `echo */` does **not**. The words `*/` expands to carry a trailing slash, and
+`GLOBIGNORE` patterns are matched against the generated word, so `02-navigation/` does not match the
+pattern `02-navigation`. The second pattern in the lab's value exists exactly to close that: with
+`GLOBIGNORE='02-navigation:02-navigation/'`, both forms are covered.
+
+What that tells you about the author: they did not reason it out from the manual, they **tested it**
+— ran the trailing-slash form, saw the directory reappear, and added a second pattern to cover the
+case. Two patterns where one would do, differing only in a trailing slash, is the fingerprint of
+someone who checked their work against the way people actually list directories. That is a small
+piece of evidence about care and intent, and it is worth recording as such and no further: it says
+the line was tested, not who tested it.
+
+**52.**
+
+**First — `ls -a` defeats `--hide`.**
+
+```
+$ ls -a
+.  ..  .hidden  02-navigation  a  b  f1
+```
+
+The directory is there. `ls --hide=PATTERN` is documented as being overridden by `-a` and `-A`: the
+manual says the option does not apply when `-a` or `-A` is also given. (`--ignore`/`-I` is the
+version that is *not* cancelled — the difference between the two options is precisely this.) So the
+alias hides the directory from `ls` and from `ls -l`, and gives it straight back to anyone who types
+the single most common `ls` option there is. As a hiding place that is weak: it survives only until
+someone looks at a directory they think might have dotfiles in it, which is a thing people do without
+suspecting anything. It also means the two mechanisms are not equally good — `GLOBIGNORE` is the
+robust half of this trace and the alias is the fragile half.
+
+**Second — a glob that matches nothing is loud.**
+
+```
+$ ls -d 02*
+ls: cannot access '02*': No such file or directory
+$ echo $?
+2
+```
+
+Look carefully at that message: it names the **pattern**, not a filename. Bash found no match, and
+with `nullglob` off it passed the pattern through unexpanded; `ls` then tried to open a file
+literally called `02*` and failed, at status 2.
+
+Compare exercise 49. There, `ls` reported a directory listing that was complete, true, and missing
+one entry — no error, status 0, nothing to notice. Here the same environment produces an error
+message and a non-zero status. **This one is loud**, and it is loud for the same reason the other was
+quiet: a glob that matches nothing leaves a residue you can see, while a glob that matches four
+things out of five leaves no trace of the fifth. The trace hides best against a background of
+successes.
+
+**Third — the side effect.**
+
+```
+$ GLOBIGNORE='02-navigation'; shopt dotglob
+dotglob         on
+$ unset GLOBIGNORE; shopt dotglob
+dotglob         off
+```
+
+Setting `GLOBIGNORE` to a non-empty value switches `dotglob` on, and unsetting it switches it back
+off. This is documented bash behaviour and it follows from the design: once `GLOBIGNORE` exists,
+`.` and `..` are filtered by an implicit pattern rather than by the leading-dot rule, so every other
+dotfile becomes matchable. The visible consequence is in the exercise-51 output above — `echo *`
+under `GLOBIGNORE` listed `.hidden`, which it never does otherwise.
+
+So the person hiding one directory also, without asking for it, made **every dotfile in every
+directory** show up in that account's globs. That is the opposite of subtle. To anyone paying
+attention it would look like `echo *` and `for f in *` suddenly picking up `.bashrc`, `.git`,
+`.config` — the sort of thing that breaks a loop noisily and gets investigated. Nobody did notice, in
+this lab, for the same reason nobody noticed the missing directory: the account was not used for the
+kind of work that would have tripped over it. But it is the loudest thing this trace does, and it is
+worth writing down that the mechanism chosen to hide one name had a blast radius the author probably
+never measured.
+
 ## Note for the instructor
 
 The Chapter 2 archive is the section that vanished. That is not a coincidence

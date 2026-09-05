@@ -74,3 +74,31 @@ comment. Modes unchanged throughout; nothing in `archive/` touched.
 - "The file says it was generated in 2186. `stat` says 2187. Which do you
   believe, and why is that a general rule?"
 - "cass asked whether the machine is broken. Answer her in two sentences."
+
+## Added exercises (51–52)
+
+**51 — must be reproduced, not reasoned.** Both outputs required: with only `02-navigation`, `echo *`
+hides the directory and `echo */` shows it, because the pattern is matched against the generated word
+and `*/` produces a trailing slash. The conclusion about the author is the marking: two patterns
+differing only by a slash is evidence the line was *tested*. A student who says this proves who wrote
+it, or that it proves malice, has overreached — the same red flag as everywhere else in this lesson.
+
+**52, first part.** `ls -a` must actually be run and the directory must be reported as visible. The
+explanation must cite `--hide` being overridden by `-a`/`-A`, and the strong answer names `-I` /
+`--ignore` as the variant that is not. The judgement — that the alias is the fragile half of the
+trace and `GLOBIGNORE` the robust half — is required for a clean pass.
+
+**52, second part.** `ls: cannot access '02*': No such file or directory`, status 2, and the
+observation that the message names the **pattern**. The comparison with exercise 49 must land the
+right way round: the empty match is loud, the partial match is silent, and the trace hides inside
+successes. A student who calls both failures equivalent has missed the point of the lesson.
+
+**52, third part — must pass.** `dotglob` on with `GLOBIGNORE` set, off after `unset`, both reported
+from `shopt`. The student must connect it to the `.hidden` entry appearing in exercise 51's `echo *`
+output rather than treating it as a separate curiosity. Full marks state the blast radius: every
+dotfile in every directory entered that account's globs, which is far noisier than hiding one
+directory, and say plainly that nobody noticed anyway.
+
+**Red flag.** Concluding from the side effect that the author was incompetent, or from the two
+patterns that they were expert, and building a character sketch on either. Both are readings of one
+line of shell. Record what the line does and what it shows about testing; stop there.

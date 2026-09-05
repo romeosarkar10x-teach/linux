@@ -108,3 +108,23 @@ the first time.
     that sentence precisely — it is not because `ls` is untrustworthy.
 50. One line, for your own notes: what is the difference between a file being
     hidden and a file being invisible to one person?
+
+51. The `GLOBIGNORE` value has **two** patterns in it, and the second one looks
+    redundant. In a scratch directory of your own, reproduce the setup with only
+    the first pattern — `GLOBIGNORE='02-navigation'` — and then run `echo *` and
+    `echo */` in turn. Report both outputs. Say exactly what the second pattern
+    buys, and what that tells you about how much the person who wrote the line
+    had tested it.
+52. Two ways to see it anyway, and one side effect nobody intended.
+    First: with the alias in force, run `ls -a` in the archive directory and
+    report whether `02-navigation` appears. Explain the result from `ls --hide`'s
+    own documentation, and say why a flag that a single common option cancels is
+    a weak place to hide anything.
+    Second: with `GLOBIGNORE` set, run `ls -d 02*`. Quote the message and the
+    exit status. Compare that failure to the one in exercise 49 — one of these
+    two is loud, and say which and why.
+    Third, the side effect: run `shopt dotglob` with `GLOBIGNORE` set and again
+    after `unset GLOBIGNORE`, and report both. Then run `echo *` in a directory
+    containing a dotfile, with and without the variable. Say what changed that
+    the person hiding a directory did not ask for, and what it would have looked
+    like to anyone paying attention.
