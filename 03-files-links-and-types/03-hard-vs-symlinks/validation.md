@@ -232,9 +232,9 @@ asks for it explicitly.
 *Red flag:* the student reports `-p` marking a symlinked directory with `/`. They tested a real
 directory by mistake, or their `ls` is aliased; check the command.
 
-## Flag
+## Wrap-up
 
-**34.** No flag. Grade the four sentences.
+**The wrap-up.** No flag. Grade the four sentences.
 *Accept:* hard link = an additional directory entry naming the same inode, counted by the inode's
 link count. Symlink = a file whose contents are a path string, resolved at every use. A dangling
 link exists because nothing checks the target — not at creation, not on deletion of the target;

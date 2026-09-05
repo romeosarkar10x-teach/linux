@@ -156,9 +156,100 @@ marker flag that only marks one type. Run that one on the same directories and r
 a symlink — including a symlink that points at a directory. Say which of the two you would reach for
 to answer "which of these are links?".
 
-## Flag
+## Core — the link as a file of its own
 
-**34.** No flag in this lesson. Write four sentences instead — one each:
+**34.** `ls -l panels` shows `current` at size 12 and `current-abs` at size 70. Count the characters
+of each arrow's target and confirm both numbers exactly. Then say what a symlink of size 0 would
+have to mean, and whether `ln -s` will make one.
+
+**35.** `stat -c '%N' chain/a`, `chain/b` and `chain/c`. Report the three lines. Say what `%N` adds
+that `%n` does not, and why it needs no `-L`.
+
+**36.** `sizes/short` and `sizes/long` both resolve to the same file, and `ls -l` gives them sizes 8
+and 40. Give the resolved path each one produces and confirm `stat -L -c %s` reports 5 for both.
+State which of the three numbers — 8, 40, 5 — is a property of the target.
+
+**37.** `ls -F` marks symlinks. Run it on `dangling` and report what a *broken* symlink is marked as.
+Then say whether `ls -F` can distinguish a working link from a broken one, and what that tells you
+about where the marker comes from.
+
+**38.** `file` on all three entries of `dangling` gives three lines. Quote them, and then explain why
+`file` can be certain the links are broken while `ls -l` cannot even guess.
+
+**39.** Read `perms/back-door` and `perms/open-door` again, then look at the modes of `secret.txt`
+and `sealed.txt`. Write the rule about a symlink's `lrwxrwxrwx` in one sentence, and say what those
+nine bits are actually used for on Linux. (They are not enforced. Say what that means for a script
+that checks a link's mode before reading it.)
+
+**40.** Both `panels/current` and `panels/current-abs` read the same file today. Copy the whole
+`panels` directory to `/tmp/panels-moved` with `cp -a` and read both links there. Report which one
+still works, which one now reads the *original* file rather than the copy, and why.
+
+## Core — following, and choosing not to
+
+**41.** Build a table of five commands run on `panels/current`: `ls -l`, `ls -lL`, `stat`, `stat -L`,
+`file`. For each, say whether its default is to follow the link, and name the flag that flips it
+where one exists.
+
+**42.** `cat`, `wc` and `grep` have no "don't follow" flag. Say why the tools in exercise 41 need one
+and these do not — the answer is about what each kind of tool is *for*.
+
+**43.** `readlink`, `readlink -f`, `readlink -e` and `readlink -m` are four different questions. Run
+all four on `dangling/vanished` and on `chain/a`, report the eight results with exit statuses, and
+give a one-line description of the question each flag asks.
+
+**44.** Under `/tmp`, build a chain of 45 symlinks ending at a real file. Then run `cat` on the head
+of the chain and `readlink -f` on the same path. Report both. Explain how one can succeed where the
+other fails, given that they are resolving the same chain.
+
+**45.** From exercise 44: the kernel's limit exists to make path resolution terminate. Say why a
+limit is needed at all when `loop/ring-a` is only two links long, and what error the two-link loop
+produces.
+
+## Experiment — predict before you run
+
+**46.** **Predict first.** `sl` is a symlink to a directory. Predict what `ln -sf /etc sl` creates,
+and what `ln -sfn /etc sl` creates. Build the case under `/tmp` — do not do this in the lab tree —
+run both, and report the two results. Say which of the two you almost always want, and clean up
+whatever the first one made.
+
+**47.** **Predict first.** Predict whether `ln -s panel-07.txt panels/current` succeeds when
+`current` already exists, and what error it gives. Then predict what changes with `-f`. Run both and
+quote the error.
+
+**48.** **Predict first.** `ln -sr` makes a relative symlink from absolute arguments. Predict the
+arrow you would get from
+`ln -sr /labs/03-files-links-and-types/03-hard-vs-symlinks/target/report.txt /tmp/r`, then run it.
+Explain the number of `..` components in the answer.
+
+**49.** **Predict first.** You `cd` into a directory through a symlink and then run `cd ..`. Predict
+where you land. Build a case under `/tmp` where the symlink and its target are at different depths,
+then show `pwd` and `pwd -P` disagreeing, and show `cd -P` changing where `cd ..` takes you. State
+which of the two paths the kernel actually used.
+
+## Stretch
+
+**50.** `readlink -e` fails on five links in this lab for two different reasons. You listed them in
+exercise 26. Now separate the two groups by their *error*: run `cat` on one member of each group and
+quote the two distinct messages. Say which of the two would still be a problem after the missing
+files were restored.
+
+**51.** Make `panels/current` survive its target being renamed. Rename `panel-07.txt` to
+`panel-08.txt` and repair `current` in one command so it reads again. Then say what property of
+symlinks makes this repair necessary and what property of hard links makes `panel-07-alias` need no
+repair at all.
+
+## Dig
+
+**52.** A deployment scheme points `/srv/app/current` at `/srv/app/releases/2187-06-11` and swaps the
+link on each release. Say why the swap is done with `ln -sfn` into a temporary name followed by `mv`,
+rather than `rm` then `ln -s`. Name the window that the `rm`-then-`ln` version opens, and say what a
+process that opens `current/config` during that window sees. Then say what the hard-link equivalent
+of this scheme would be and why nobody does it that way.
+
+## Wrap-up
+
+**No flag in this lesson.** Write four sentences instead — one each:
 
 - what a hard link is, in terms of inodes,
 - what a symlink is, in terms of file contents,
