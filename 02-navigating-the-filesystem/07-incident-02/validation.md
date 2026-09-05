@@ -230,7 +230,7 @@ Reference values (verified against the image, 2026-08-23):
 | **Red flags** | Submission timestamp before any listing of `maintenance`. |
 | **Probe** | "Which underscore in your flag came from a character you cannot type?" |
 
-### Exercise 20 — Debrief, **load-bearing**
+### The debrief — **load-bearing**
 | Field | Value |
 |---|---|
 | **Goal** | State the four mechanisms plainly. |
@@ -244,7 +244,7 @@ Reference values (verified against the image, 2026-08-23):
 
 ## Lesson roll-up
 
-**Must PASS:** 4, 7, 9, 10, 19, 20. Exercise 10 is the incident — a student who reaches the flag
+**Must PASS:** 4, 7, 9, 10, 19, and the debrief. Exercise 10 is the incident — a student who reaches the flag
 without it has entered the directory but has not understood the name, and 19's rubric will catch it.
 
 **Nice to have:** 5, 6, 12, 13, 14, 15, 16, 17, 18.
