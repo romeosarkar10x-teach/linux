@@ -238,7 +238,7 @@ Reference values (verified against the image, 2026-08-23):
 | **Reject** | A flag quoted with no transcript showing the file being read. |
 | **Red flags** | `grep` in the transcript, or `setup.sh` opened. |
 
-### Exercise 28 (Debrief)
+### The debrief
 | Field | Value |
 |---|---|
 | **Goal** | Four sentences plus one. |

@@ -22,7 +22,7 @@ path exactly as printed, and the size in the size column.
 **2.** The four sizes in exercise 1 are not the sizes of any file on this station. Work out what
 number `ls` is actually printing for a symlink. Prove it on one entry with `echo -n <target> | wc -c`.
 
-**3.** `ls -l deck3` and `ls -F deck3`. Six directories. Say in one line what each one appears to be
+**3.** `ls -l deck3` and `ls -F deck3`. Seven directories. Say in one line what each one appears to be
 for, from its name and its contents, without following any link yet.
 
 ## Core
@@ -148,7 +148,129 @@ kestrel flags submit 'KESTREL{...}'
 If it is rejected, count your words again from the end of the line — the punctuation before them is
 not a word.
 
-**28.** Debrief, written, four sentences — one each:
+## Core — the console as evidence
+
+**28.** `file deck3/console/*`. Four lines. Quote them. One of the four says something none of the
+others do, and it is the same finding you made in exercise 5 by a different route. Say which route
+you would put in a report, and why.
+
+**29.** `stat -c '%n %F %U %A' deck3/console/*`. All four lines are identical apart from the name.
+Say what that proves about the difference between the working links and the dead one — and where
+that difference *is* recorded, given that it is not in any of those four fields.
+
+**30.** `find deck3 -xtype l` returns one path. `find -L deck3 -type l` returns the same one. Explain
+why `-L` — "follow symlinks" — makes `-type l` report only the **broken** link. Then say which of the
+two forms you would rather type from memory at three in the morning.
+
+**31.** `find deck3 -xtype d` lists nine paths, and one of them is not a directory. Name it, and say
+what `-xtype d` actually tested for it.
+
+**32.** `ls -F deck3/console` gives all four entries the same marker. `ls -lF deck3/console` gives
+one of them something extra — not on the name, on the far side of the arrow. Run both, report where
+the extra character appears and which entry gets it, and explain what `ls` had to do to know to print
+it. Bear in mind exercise 37 of 03/03, where `-F` could not tell a broken link from a working one:
+say why this case is different.
+
+**33.** Count the symlinks in the whole tree with `find deck3 -type l | wc -l`, then count the ones
+that resolve. Give both numbers and the arithmetic that connects them to the audit line in
+`archive/panel-07.log`. Say whether the log's count agrees with yours, and if it does not, say which
+directory the log's author was standing in.
+
+**34.** `ls -lL deck3/console` on the whole directory rather than one entry. Report what happens to
+the dead entry's line. Say what `ls` does when `-L` fails on one entry out of four, and what exit
+status you get.
+
+## Core — the copy, the link, and the count
+
+**35.** `stat -c '%n %i %h %s %y' deck3/readings/*`. Of the five fields, name every one that would
+have let you separate the pair from the copy, and every one that would not. There are more of the
+second kind than the first.
+
+**36.** Append a line to `deck3/readings/sensor-a.txt` — copy the directory to `/tmp` first, this
+lab's `deck3` is not to be modified. In the copy, show which of the other two files changed. Then
+say what that means for someone who "backed up" `sensor-b.txt` and thinks they have a second copy.
+
+**37.** `deck3/store/panel-log.txt` and `deck3/archive/panel-07.log` share an inode across two
+directories. `sensor-a.txt` and `sensor-b.txt` share one inside a single directory. Say which of the
+two arrangements is easier to miss with `ls -l`, and why the *directory* is what makes it so.
+
+**38.** Add up the sizes reported by `ls -l` for everything under `deck3` and compare it to
+`du -sh deck3`. State which of the two double-counts what, and name the two mechanisms responsible —
+one for the symlinks, one for the hard-linked pair.
+
+**39.** `readlink -f deck3/console/panel-current` names `store/panel-log.txt` and not
+`archive/panel-07.log`, even though those are the same file. Explain why in terms of what
+`readlink -f` resolves and what it does not. Then say what command *would* give you the other name.
+
+**40.** From exercise 39: if the incident report says "the console reads from `store/`", is that a
+true statement, a false one, or an incomplete one? Defend the answer in two sentences, and say what
+you would write instead.
+
+## Experiment — predict before you run
+
+**41.** **Predict first.** Predict what `cat deck3/console/logs` does, given that `logs` resolves to a
+directory. Predict the exact error. Then run it, and run `ls deck3/console/logs` as well. Say which
+of the two verbs a directory supports and which it does not.
+
+**42.** **Predict first.** Predict the output of `wc -c deck3/console/panel-current`. Predict the
+number before you run it, and say which of the four candidate numbers you are choosing between — the
+link's size, the middle link's size, the log's size, or an error. Then run it.
+
+**43.** **Predict first.** Predict what `find deck3 -newer deck3/notes/dangling.txt` returns. Predict
+how many paths and which. Then run it and explain why the count is what it is — including why one
+file appears under two names.
+
+**44.** **Predict first.** In a fresh `/tmp` directory, make a symlink `l` to a file that exists, then
+`touch -h -d '2187-06-01 00:00' l` and `touch -d '2187-06-01 00:00' l`. Predict which of the two
+changes the link's timestamp and which changes the target's. Check both with
+`stat -c '%n %y' l` and `stat -L -c '%n %y' l`.
+
+**45.** **Predict first.** Predict what `cp deck3/console/strain-feed /tmp/sf` does. Then predict
+`cp -P` and `cp -a`. Run all three in `/tmp` and report the three results. Explain the first one in
+terms of what `cp` must do before it can copy anything.
+
+## Stretch
+
+**46.** The dead link's timestamp is 2187-05-08 and the other four are 2187-03-30. State what that
+gap does and does not establish. Specifically: does it prove the link was created on the 8th, does it
+prove the target existed then, and does it prove anything about who did it? One sentence each,
+marked fact or inference.
+
+**47.** The note's mtime is 2187-05-22 06:02 and `archive/panel-07.log` has a line timestamped
+2187-05-22 06:02. Say what would have to be true for those to be the same event, and name one
+ordinary thing that would produce the coincidence without them being related. Then say what evidence
+would settle it, and whether this lab contains it.
+
+**48.** Reconstruct the console entirely in `/tmp/console-rebuild` without looking at `deck3` again,
+from your notes alone: four links with the same four targets and the same relative-versus-absolute
+shape. Then run `find -L . -type l` in your rebuild and confirm it reports exactly one entry.
+
+**49.** Rhea wants the dead link repaired. You cannot: the target does not exist and the mount is
+gone. Write the two-line reply that says what you can do instead, and make one of the two lines a
+concrete command she could run when the array comes back — using `ln -sfn` and saying why the `n`
+is there.
+
+## Dig
+
+**50.** Nothing in this lab identifies who made the dead link. List, precisely, the three fields that
+`stat` gives you for `deck3/console/strain-feed`, say what each one would have told you on a station
+where the accounts were not all `root`, and say which single field would have been decisive. Do not
+name anyone.
+
+**51.** The handbook says a panel can be swapped without moving a log file. The chain is
+`console/panel-current -> links/panel-active -> store/panel-log.txt =(hard link)= archive/panel-07.log`.
+Say which hop exists to allow the panel swap, which hop exists to allow the *log* to move, and which
+hop is doing neither. Then say what would break, and what would not, if someone replaced the middle
+symlink with a hard link — and whether they could.
+
+**52.** Write the paragraph you would put at the top of the incident record. It must contain: the
+four console entries and their state, the full target path of the dead one, the date the feed stopped
+according to the log, and one sentence marking clearly which part of that is recorded and which part
+is inferred. No speculation about people. Keep it under 120 words.
+
+## The debrief — required
+
+Written, four sentences — one each:
 
 - where each of the four console entries points, and which goes nowhere,
 - the full path the dead one was aimed at,
