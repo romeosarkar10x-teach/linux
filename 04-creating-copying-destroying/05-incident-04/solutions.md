@@ -209,6 +209,217 @@ timestamps on the original filesystem, and a way to search text across many file
 Chapter 6 (`grep`) and Chapter 7 (`find`, `sed`, `awk`); ownership and process attribution are later
 still. The correct answer here is to stop.
 
+## Added exercises 34–52
+
+**34.** 29 lines in the manifest, 20 in the `.bak`. The manifest's 13 non-row lines are: title,
+issue line, "recorded off the deck-03 tree", a blank, the four-line readback convention, a blank, the
+column header, the top rule, the bottom rule and the footer. The `.bak` has 8: title, issue line,
+"working copy, not for readback", a blank, the column header, two rules and the footer. The
+authoritative one has more non-row lines because it carries the readback convention — the part that
+makes the notes column mean something — which is exactly the part the working copy dropped.
+
+**35.** The rows are lines 12–27, so:
+
+```
+head -27 records/tree-manifest.txt | tail -16
+```
+
+`nl -ba records/tree-manifest.txt` gives both numbers: the first row is line 12 and the last is line
+27. Adding a row moves the `27` and the `16` together; both are positions counted from the top, which
+is why this is a fragile way to read a table and why Chapter 6 exists.
+
+**36.** The sixteen rows total **13820** bytes. The fifteen files that existed total **13308** — the
+512-byte `readings/2187-05-17-1804.txt` row is excluded, because exercise 11 showed the surviving
+file is 1180 bytes and exercise 12 established that the 18:04 row records an extract that came out
+short and was retaken, not a file that was ever in the tree. 13820 − 512 = 13308.
+
+**37.**
+
+```
+records/tree-manifest.txt records/tree-manifest.txt.bak differ: byte 44, line 2
+```
+
+Status 1. `cmp` has told you the two files are not identical and where the *first* byte of difference
+is — line 2, the issue timestamp, which differs in its first digit. That is a correct answer and a
+useless one: the differences you care about are four missing rows, a reordered table and a changed
+`recorded` value, and `cmp` stops at the first byte and says nothing about any of them. `cmp` answers
+"are these the same file"; nothing more. What you want is a line-level comparison, and that is
+Chapter 7.
+
+**38.**
+
+```
+16 rows.
+----------------------------------------------------------------------------
+handover/2187-05-13.txt              576   18:19       day shift only, no night entry
+handover/2187-05-14.txt              832   18:18       everything signed off
+handover/2187-05-15.txt              704   18:17       verified against the panel log
+```
+
+Reading bottom-up puts the footer's claim next to the rows it is a claim about, so "16 rows" and the
+last row arrive together and you can start counting upward immediately. When a document asserts
+something about its own body, the assertion and the end of the body are adjacent, and `tac` is the
+cheapest way to see both at once.
+
+**39.** Four rows:
+
+```
+readings/2187-05-17-1200.txt        2048   12:07
+readings/2187-05-17-1804.txt         512   18:04
+readings/2187-05-17-1804.txt        1180   18:08
+handover/2187-05-15.txt              704   18:17
+```
+
+All four were recorded *after* 09:12, which is when the `.bak` was issued — and its footer says so:
+"Midday and evening readings not yet taken." The `.bak` is not wrong about anything it contains; it
+is simply earlier. That is what makes it a red herring rather than a forgery, and it is also why
+"older" alone was never the argument in exercise 6.
+
+**40.** The `.bak` claims 12 rows and has 12. The footer is correct. It changes nothing: a correct
+count tells you the file has not been truncated, and says nothing about whether the tree had more
+files in it than the manifest ever knew about — which is precisely the `.bak`'s problem. A count is a
+check on the record, not on the world.
+
+**41.** 15 files and 4 directories (`rebuild`, `rebuild/readings`, `rebuild/faults`,
+`rebuild/handover`) — `find` counts the top of the tree, which is the number people get wrong.
+15 files, not 16: the same exclusion as exercise 36.
+
+**42.**
+
+```
+touch -d '2187-05-17 18:13' rebuild/faults/open.txt rebuild/faults/closed.txt
+touch -d '2187-05-17 18:14' rebuild/faults/deferred.txt
+```
+
+(Two commands, because `open.txt` and `closed.txt` share 18:13 and `deferred.txt` does not.) You now
+have a tree whose mtimes agree with the manifest, which makes the reconstruction readable — you can
+sort it by time and see the shape of that evening.
+
+What it does not establish is anything at all about the original files. You set those times yourself,
+from the manifest, an hour ago. A timestamp you wrote is a transcription of a record, not evidence;
+if the manifest were wrong, your tree would be confidently wrong in exactly the same way and nothing
+in it would say so.
+
+**43.**
+
+```
+$ stat -c '%s %y %n' rebuild/readings/2187-05-17-1804.txt
+1180 2187-05-17 18:08:00.000000000 +0000 …
+```
+
+Plain `cp` gives the copy *today's* mtime; `cp -p` (or `cp -a`) keeps 18:08 and 18:17. If you used
+plain `cp` in exercise 18, redo it with `-p`.
+
+The distinction matters more here than anywhere else in the lesson. Those two files' mtimes were
+written by whatever produced them on 2187-05-17 — they are measurements. Every other mtime in
+`rebuild/` is a value you typed from a manifest. Both look identical in `ls -l`, and only one of them
+would survive being questioned. That is the reason `cp -p` exists.
+
+**44.** `du -sb rebuild` reports 13308 — the sum of the fifteen file sizes, exactly the figure from
+exercise 36 — and `du -sh rebuild` reports 32K.
+
+On `salvage`, `du -sb` is **1884** = 1180 + 704, the two files' bytes and nothing else; the
+directories contribute nothing to the byte total. `du -sh` is **20K**: three directories at 4K each
+(`salvage`, `salvage/readings`, `salvage/handover`) plus one 4K block for the 1180-byte file and one
+for the 704-byte file. 12K + 4K + 4K = 20K. Neither number is wrong; they answer different questions
+— "how much data is here" and "how much of the disk is this costing".
+
+**45.**
+
+```
+0000000  \0  \0  \0  \0  \0  \0  \0  \0  \0  \0  \0  \0  \0  \0  \0  \0
+*
+0002220  \0  \0  \0  \0  \0  \0  \0  \0  \0  \0  \0  \0
+0002234
+```
+
+The `*` is `od` collapsing identical lines (lesson 03/01 met this); `0002234` octal is 1180 decimal.
+`wc -c` is 1180 and `wc -l` is **0** — there is not a single newline in it.
+
+So the reconstruction is 1180 NUL bytes. It has the manifest's size and none of its content, and
+that is all a size column can ever give you back.
+
+**46.**
+
+```
+$ cmp /tmp/z salvage/readings/2187-05-17-1804.txt
+/tmp/z salvage/readings/2187-05-17-1804.txt differ: byte 1, line 1
+```
+
+Status 1. Byte **1** — the very first byte, `\0` against `s`. Same length, no shared content; `cmp`
+finds the difference immediately and never reaches the end. Equal size told you nothing.
+
+**47.** `wc -l /tmp/z` is 0 and `wc -l` on the salvaged file is 26. `wc -l` counts newline
+*characters*, so a 1180-byte file with no newlines has zero lines — the same arithmetic as lesson 01
+exercise 5, where a file with visible text reported 0 because its single line was unterminated. Here
+there is no text at all, and the count is honest about it.
+
+**48.** `du /tmp/z` reports **4** — four 1K units, i.e. one 4096-byte block. The file is 1180 bytes,
+so 2916 bytes of that block are allocated and unused. The filesystem hands out whole blocks; a file
+of one byte and a file of 4096 bytes cost the same. This is why a tree of many small files costs far
+more than `du -sb` suggests, and why the manifest's size column would never have predicted the disk
+cost of the tree it describes.
+
+**49.** mtime becomes the value you asked for; **ctime becomes now**:
+
+```
+2187-05-17 18:13:00.000000000 +0000|2026-09-05 21:46:55.278326031 +0000
+```
+
+So yes — anyone reading `rebuild/` tomorrow can tell. A file whose mtime is in 2187 and whose ctime
+is this afternoon has had its timestamps set by hand, because ctime cannot be set by `touch` at all
+(lesson 02 exercise 51). The reconstruction announces itself as a reconstruction, which is the right
+outcome: it is a working tree, not a claim to be the original.
+
+**50.** Raw sequence, notes column first letters in row order:
+
+```
+n o t d e t e d m o e d
+```
+
+Grouped one word per directory, in the order the rows appear — `faults`, then `readings`, then
+`handover`:
+
+```
+not   deted   moed
+```
+
+`not` is a word by accident; `deted` and `moed` are not words. The readback fails, and the manifest's
+own convention says what to do about that: "If the readback is not three words, the manifest is
+incomplete and must not be acted on." The `.bak` is missing four rows, so four letters are missing,
+and the check catches it. Its header said `working copy, not for readback` before you ran a single
+command — the readback is the mechanical confirmation of something the file volunteered.
+
+**51.** Columns that would have answered "deleted or moved":
+
+- **inode number** — with the device, the identity of the file itself. If the tree were moved within
+  one filesystem, the inodes at the new location would be *the same numbers*; a `cp` or a
+  cross-filesystem `mv` gives new ones. This is the single most useful column and the manifest has
+  no equivalent.
+- **device number** (`stat -c '%d'`) — tells you which filesystem the tree was on, so "the inodes
+  differ" can be read as "it crossed a filesystem" rather than "it is not the same data".
+- **link count** — a file with two names does not disappear when one is removed; a manifest that
+  recorded `%h` would tell you whether a missing path could still exist elsewhere under another name.
+- **a content hash** — establishes that a file found later *is* the file, not merely one of the same
+  size. Exercise 46 is the whole argument for this column.
+- **ctime** — when the inode last changed, which is the one timestamp nobody can set.
+
+All five are readable with `stat` in the instant before a wipe, so all five could have been recorded
+by the same person, at the same time, with the same effort. What no manifest can record is what
+happened *after* it was written — which is the archivist's actual question.
+
+**52.** A manifest establishes what the tree contained at the instant it was taken: these paths,
+these sizes, these times, and — with the columns of exercise 51 — these identities. It cannot
+establish anything about the tree afterwards: not that the files still existed a minute later, not
+that they were removed rather than relocated, not who touched them. It is a photograph, and no
+photograph tells you what happened after the shutter closed.
+
+The second sentence is the one the archivist needs, and it is the one the manifest cannot supply. The
+answer to "deleted or moved" has to come from a record of *events* rather than of state: an audit
+log, a filesystem journal, shell history, process accounting — something that was watching while it
+happened. `records/` contains no such thing, and neither does this lab. Chapter 15 is where you get
+the tools to read that kind of record; until then the honest answer is exercise 27's.
+
 ## Notes for the authoring/tutor agent
 
 - The `.bak` is the required red herring and it is **not** a decoy flag — it produces a readback that

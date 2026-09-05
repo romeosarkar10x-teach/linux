@@ -138,3 +138,102 @@ explain the week between the copy and the wipe.
 **33.** One question the lab does not answer and you should not pretend it does: who wiped the
 source. Say what you would need to look at to find out, name the two chapters' worth of tools you do
 not have yet, and leave it there.
+
+---
+
+## Core — the manifest as data
+
+**34.** `wc -l records/tree-manifest.txt` and `wc -l records/tree-manifest.txt.bak`. Report both.
+Neither number is the row count. Account for every line that is not a row, in both files, and say
+which of the two has more non-row lines and why.
+
+**35.** Print the table and nothing else — no header, no rule lines, no footer — from the
+authoritative manifest, using only `head` and `tail`. Say how you found the two numbers you passed
+them, and what you would have to change if a row were added.
+
+**36.** Add up the size column of the authoritative manifest by hand (or with `nl` and patience) and
+report the total. Then report a *second* total: the one that describes the files that actually
+existed. The two differ by one row's worth; say which row and why it is excluded.
+
+**37.** `cmp records/tree-manifest.txt records/tree-manifest.txt.bak`. Report the output exactly.
+Then say what `cmp` has and has not told you about the difference between the two files, and why
+that is nearly useless here even though it is a correct answer.
+
+**38.** `tac records/tree-manifest.txt | head -5`. Report what comes out. Then say what reading a
+table bottom-up is good for when the footer makes a claim about the body.
+
+**39.** List every row that is in the authoritative manifest and not in the `.bak`. There are four.
+Then say what all four have in common, and connect that to the `.bak`'s footer.
+
+**40.** The `.bak`'s footer claims a row count. Check it, the way you checked the other footer in
+exercise 3. Then say whether a footer count that is *correct* makes a manifest trustworthy, in one
+sentence.
+
+---
+
+## Core — the rebuild as evidence
+
+**41.** `find rebuild -type f | wc -l` and `find rebuild -type d | wc -l`. Report both against what
+the manifest requires. State the directory number before you run it — remember `rebuild` itself
+counts.
+
+**42.** Every rebuilt file has today's date on it. Set each one's mtime to the time in the `recorded`
+column, on 2187-05-17, with `touch -d`. Do the `faults/` three in one command line. Then `ls -l
+rebuild/faults` and say what you have now got that you did not have before — and, precisely, what
+that timestamp does *not* establish.
+
+**43.** You copied the two salvaged files in exercise 18. Check with `stat -c '%s %y %n'` whether
+they carry their original 18:08 and 18:17 mtimes or the time you copied them. If they carry the
+copy time, redo the copy so they do not, and say which flag you needed. Then say why, for these two
+files specifically, the original mtime is evidence and the rebuilt files' mtimes are decoration.
+
+**44.** `du -sb rebuild` and `du -sh rebuild`. Report both, and reconcile them: the first is bytes,
+the second is what the filesystem actually spends. Do the same on `salvage` — `du -sb salvage` is
+1884 and `du -sh salvage` is 20K. Account for the whole of the difference, directory by directory.
+
+**45.** `head -c 1180 /dev/zero > /tmp/z; od -c /tmp/z | head -3` and `od -c /tmp/z | tail -2`.
+Report what `od` shows, including the `*`. Then `wc -l /tmp/z` and `wc -c /tmp/z`, and say what your
+reconstruction of a 1180-byte file is made of.
+
+---
+
+## Experiment — predict before you run
+
+**46.** **Predict first.** Predict the output and exit status of
+`cmp /tmp/z salvage/readings/2187-05-17-1804.txt`. Both files are 1180 bytes. Say what `cmp` will
+report and at which byte, before you run it.
+
+**47.** **Predict first.** Predict `wc -l` on both of those files. One of them is 1180 bytes with no
+newline in it at all; say what that does to the count, and connect it to lesson 01 exercise 5.
+
+**48.** **Predict first.** Predict `du /tmp/z` (no options) before you run it. The file is 1180
+bytes. Explain the number you get in terms of what the filesystem hands out, and say how many bytes
+of the last unit are wasted.
+
+**49.** **Predict first.** You are about to `touch -d` sixteen rebuilt files to sixteen recorded
+times. Predict what happens to a rebuilt file's *ctime* when you do that, and whether anyone reading
+your `rebuild/` tree tomorrow could tell the mtimes were set by hand. Then check with
+`stat -c '%y %z %n'` on one of them.
+
+---
+
+## Stretch
+
+**50.** Do the readback on the `.bak`, exactly as exercise 29 does it on the authoritative manifest.
+Report the raw letter sequence and the three groups it falls into. None of the three is a word. Say
+what that demonstrates about the `.bak` — and note that its own header said so before you started.
+
+**51.** The archivist's question ("deleted or moved?") is unanswerable from this manifest. Design the
+manifest that *would* have answered it: list the columns you would add, say what each one would let
+you prove, and say which of them a manifest taken an hour before a wipe could still record. Lesson
+03's cross-filesystem `mv` and Chapter 3's inode material are the two things to draw on.
+
+---
+
+## Dig
+
+**52.** A manifest records what a tree contained at one instant. Write down, in three sentences,
+what it can establish about that tree at any *later* instant, and what it cannot — then say which of
+your three sentences is the one the archivist actually needs, and why the answer to their question
+has to come from somewhere other than `records/`. Name the kind of record it would have to come
+from; you do not have the tools for it until Chapter 15.

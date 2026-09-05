@@ -148,6 +148,80 @@ file" — the rule, not the instance.
 
 ---
 
+## Added exercises (34–52)
+
+**34.** 29 and 20. The second half is the marking: the extra lines in the authoritative file must be
+identified as the readback convention, not merely counted. "The manifest is longer because it has
+more rows" is wrong — it has *four* more rows and *five* more non-row lines.
+
+**35.** Any command that prints exactly lines 12–27 passes; `head -27 | tail -16` is the expected
+shape. Must state where the numbers came from (`nl -ba`, or counting). Accept `sed -n '12,27p'` from
+a student who has met it. The fragility observation is required for a clean pass: the answer should
+say that adding a row breaks both numbers.
+
+**36.** 13820 and 13308, and the difference explicitly attributed to the 512-byte row with the
+exercise-11/12 reasoning restated. A student who reports 13820 for both, or who subtracts the wrong
+row, has not carried the duplicate resolution forward.
+
+**37.** The exact line and status 1. The marking is on the second half: `cmp` located a difference
+that does not matter and cannot report the ones that do. If the student treats "differ: byte 44" as a
+finding about the incident, that is a Redo on this exercise.
+
+**38.** The five lines, footer first. Reason must be about adjacency of claim and evidence, not "tac
+is a neat trick".
+
+**39.** All four rows, and the observation that every one is after 09:12 — with the `.bak`'s own
+footer quoted. The point is that the `.bak` is *earlier*, not *wrong*; a student who calls it
+falsified has misread the lab.
+
+**40.** 12 and 12, footer correct, and — the actual content — a correct self-count says nothing about
+completeness. Watch for "the count is right so the file is fine".
+
+**41.** 15 and 4. Accept 3 directories only with an explicit note that the top of the tree was
+excluded on purpose; silent 3 is a miscount. 16 files means the 512 row was rebuilt: Redo, and refer
+back to exercise 12.
+
+**42.** Two `touch -d` commands with the times grouped correctly. Then the harder half: the student
+must say that these mtimes are transcribed from the manifest and are therefore not evidence. An
+answer that stops at "now the tree matches the manifest" is a Pass-with-notes; an answer that offers
+the rebuilt tree as corroboration of the manifest is circular and is a Redo.
+
+**43.** `cp -p`/`cp -a` named, and 18:08/18:17 preserved. The distinction between a measured mtime
+and a typed one is the exercise; both halves of the tree exist in the same `ls -l` and only the
+student can tell them apart.
+
+**44.** 13308 / 32K on `rebuild`, 1884 / 20K on `salvage`, with the 20K broken down: three
+directories plus two block-rounded files. "20K is wrong" is a Redo — both numbers are right and
+answer different questions.
+
+**45.** The `*` collapse and offset `0002234` = 1180. `wc -l` 0. The conclusion — a size column
+reconstructs size and nothing else — is the point of the exercise.
+
+**46–49.** Predictions must be written before running. 46: byte 1, status 1. 47: 0 and 26, with
+`wc -l` counting newlines. 48: 4, block allocation. 49: mtime set, ctime now, and the explicit
+statement that the reconstruction is detectable as one — which is a *good* property, not a defect. A
+student who says the ctime "gives the game away" and proposes to hide it has the ethics backwards;
+say so.
+
+**50.** `not deted moed`, and the recognition that this is a failed readback. Full marks require
+citing the manifest's own rule ("must not be acted on") and noticing the `.bak` header said so
+already. A student who forces the letters into three plausible words has broken the check rather than
+run it.
+
+**51.** At least three of: inode, device, link count, content hash, ctime — with the *reason*, not
+the name. The inode/device pair carrying the deleted-vs-moved answer is the one that must be there
+for a clean pass. Full marks also note that all of these were free to record at manifest time.
+
+**52.** Both halves: what a manifest fixes (state at an instant) and what it cannot (anything after).
+The second sentence should point at event records — audit log, journal, shell history — and admit
+this lab has none. An answer that concludes the manifest settles the question fails the lesson.
+
+**Red flags across the block.** Rebuilding the 512-byte row. Presenting the reconstructed tree as
+evidence about the original. Reading `cmp`'s byte 44 as a finding. Forcing the `.bak` readback into
+words. Any of these is a Redo regardless of the flag.
+
+---
+
 ## Roll-up
 
 **Clean pass.** Manifest read as a document; authority decided on evidence; duplicate resolved by
