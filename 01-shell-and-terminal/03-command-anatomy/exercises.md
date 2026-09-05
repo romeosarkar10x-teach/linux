@@ -163,3 +163,186 @@ output from a plain `echo --version`, then switch the builtin back on and prove 
 
 *Done looks like:* four steps with outputs, plus one sentence on why you would rather do this than
 edit `PATH`.
+
+---
+
+## Core — words, splitting, and what the command sees
+
+**20.** Run `deck-report` with the argument list `a  b` (two spaces). How many arguments arrive, and
+where did the second space go?
+
+*Done looks like:* the count and the explanation.
+
+**21.** Now `deck-report "a  b"`. One argument, spaces intact. State the rule in one sentence.
+
+*Done looks like:* the output and the rule.
+
+**22.** `deck-report ''` — an empty argument. Does it arrive? Prove it from the report.
+
+*Done looks like:* the output and a yes or no with evidence.
+
+**23.** `deck-report` with no arguments at all. How does the report distinguish this from
+exercise 22?
+
+*Done looks like:* both outputs side by side.
+
+**24.** Pass `deck-report` an argument that begins with a dash and is not a flag it knows. What does
+it do, and what *could* a program do in that situation?
+
+*Done looks like:* the observed behaviour and two alternatives named.
+
+**25.** Use `--` to pass that same dashed word as a plain argument. Report the difference.
+
+*Done looks like:* both invocations and the effect of `--` in one sentence.
+
+**26.** `deck-report $UNSET_THING` where the variable does not exist. How many arguments arrive?
+Now quote it. How many now?
+
+*Done looks like:* two counts and the reason they differ.
+
+**27.** Name the four things the shell does to a command line before the program ever starts, in
+order, using only what you have seen in this lesson.
+
+*Done looks like:* four named steps. Chapter 5 makes this list longer and exact; a rough correct
+order is the goal here.
+
+---
+
+## Core — resolution order in anger
+
+**28.** Build the full precedence list from evidence: alias, function, builtin, keyword, file on
+`PATH`. Demonstrate at least three of the five winning over something below them.
+
+*Done looks like:* three demonstrations and the ordered list.
+
+**29.** Define a shell function named `deck-report` that prints one line. Now run `deck-report`.
+Which one ran, and how do you get the file instead without deleting the function?
+
+*Done looks like:* the function, the run, and the escape route.
+
+**30.** Do the same with an alias named `cat`. Then defeat the alias three different ways.
+
+*Done looks like:* three working escapes.
+
+**31.** `unset -f` and `unalias` remove your two overrides. Confirm with the classifier command that
+each is gone.
+
+*Done looks like:* two before-and-after classifications.
+
+**32.** `command` and `builtin` are both ways of skipping part of the resolution order. Run each on
+`echo` and say precisely what each one skips.
+
+*Done looks like:* two outputs and two sentences.
+
+**33.** Print `PATH` one directory per line and say which of them you can write to. Then say why the
+order of that list is a security question and not just a convenience.
+
+*Done looks like:* the list and the argument.
+
+**34.** Put the lab's `bin/` at the *front* of `PATH` in a throwaway shell and run `ls`. Then put it
+at the *back* and run `ls` again. Report both, then leave that shell.
+
+*Done looks like:* two results and the conclusion about where a directory sits in `PATH`.
+
+---
+
+## Core — reading a command line you did not write
+
+**35.** `bin/deck-report -v --deck 5 spares -- -x` — before running it, write down how many
+arguments you expect the program to receive and what each is. Then run it and compare.
+
+*Done looks like:* the prediction, the report, and any correction.
+
+**36.** In that line, which words did the shell interpret and which did it hand over untouched?
+
+*Done looks like:* two lists.
+
+**37.** Someone writes `deck-report -deck 5`. It behaves differently from `--deck 5`. Say what the
+program most likely did with the single-dash form, and why guessing is not enough.
+
+*Done looks like:* the reading and the reason to check the program's own documentation.
+
+**38.** Write down the shape of a command: name, options, option arguments, operands, `--`. Label
+every word of the exercise-35 line with one of those.
+
+*Done looks like:* a fully labelled line.
+
+---
+
+## Experiment — predict before you run
+
+**39.** **Predict first.** `type type`. Predict the classification, then run it.
+
+*Done looks like:* prediction and output.
+
+**40.** **Predict first.** After `hash -r`, will the shell find `deck-report` faster or slower on the
+next run? Predict, then reason about what `hash -r` actually discarded.
+
+*Done looks like:* the prediction and the corrected reasoning.
+
+**41.** **Predict first.** You add the lab's `bin/` to `PATH`, then move `bin/ls` away, then run `ls`
+without `hash -r`. Predict what happens. Then do it.
+
+*Done looks like:* prediction, the error quoted exactly, and the fix.
+
+**42.** **Predict first.** `alias echo='echo prefix:'` and then `echo hello`. Predict the output.
+Then predict what `\echo hello` prints. Then run both.
+
+*Done looks like:* two predictions, two outputs, one sentence on recursion in aliases.
+
+**43.** **Predict first.** Does `type` consult the disk for a name that is already hashed? Predict,
+then use `type -a` and `hash` together to argue for your answer.
+
+*Done looks like:* the argument, whichever way it comes out.
+
+---
+
+## Stretch
+
+**44.** Write the shortest command line you trust to answer "what will run if I type `X` right
+now?", and justify each part of it against a case where a simpler answer would mislead.
+
+*Done looks like:* the command and three misleading cases it survives.
+
+**45.** A script fails only when run from `cron`-like environments with a minimal `PATH`. Using this
+lesson, explain the failure and give two fixes, one good and one bad.
+
+*Done looks like:* the diagnosis and both fixes, labelled.
+
+**46.** Explain to a colleague why `which` is the wrong tool inside a script, in two sentences.
+
+*Done looks like:* two sentences naming the shell's own knowledge.
+
+**47.** The lab's fake `ls` is a real hazard in miniature. Describe how the same shape could be an
+attack, and one habit that prevents it.
+
+*Done looks like:* the scenario and the habit.
+
+---
+
+## Dig
+
+**48.** Find out whether an alias defined in an interactive shell is visible to a script you run
+from that shell. Prove it either way.
+
+*Done looks like:* the experiment and the result.
+
+**49.** Find the shell option that makes aliases work in a non-interactive shell, and say why it is
+off by default.
+
+*Done looks like:* the option and a reason.
+
+**50.** `enable` can turn a builtin off. Turn off `echo`, run `echo`, and report what runs instead.
+Then turn it back on.
+
+*Done looks like:* the three states and the path of whatever took over.
+
+**51.** Find out how the shell decides a file is executable when it searches `PATH`, and confirm a
+non-executable file with the right name is skipped rather than reported.
+
+*Done looks like:* the experiment and the result.
+
+**52.** Find out what `PATH=` with an empty element (a leading, trailing or doubled colon) means.
+Then check whether this machine's `PATH` has one.
+
+*Done looks like:* the meaning, the check, and one sentence on why it matters.

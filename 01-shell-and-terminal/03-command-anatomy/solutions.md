@@ -272,3 +272,88 @@ the first `echo` on `PATH` — wins.
 Better than editing `PATH` because it is scoped to this one word, reversible in one command, and it
 does not change how anything else resolves. It applies to the current shell only; a script launched
 from it gets its own fresh set of builtins.
+
+---
+
+## Added exercises 20–52
+
+### 20–23 — how many arguments arrive
+`deck-report a  b` → two arguments, `a` and `b`; the run of spaces is a single separator, and the
+shell discards it. `"a  b"` → one argument with both spaces intact: quoting turns a run of
+characters into exactly one word. `deck-report ''` → one argument, and it is empty — the report
+shows an empty slot, which is not the same as no slot. No arguments at all shows a count of zero.
+The pair 22/23 is the point: an empty argument is present.
+
+### 26 — unset variable
+`deck-report $UNSET_THING` → zero arguments. The variable expands to nothing, and the nothing is
+then removed by word splitting. `deck-report "$UNSET_THING"` → one empty argument, because quoting
+happens after expansion and there is nothing left to split. This is the bug behind a thousand
+scripts that delete the wrong thing.
+
+### 27 — what the shell does first
+Roughly: expand aliases; expand variables and command substitutions; split the result into words;
+expand globs; then resolve the first word and run it. Chapter 5 gives the exact list. Any answer
+that puts splitting *after* variable expansion is on the right side of the distinction that matters.
+
+### 29 and 30 — beating your own overrides
+The function wins over the file. Get the file with `command deck-report`, or the full path
+`bin/deck-report`. For an alias named `cat`: `\cat`, `command cat`, `/usr/bin/cat`, or quoting any
+part of the name (`"cat"`). Aliases are expanded only on an unquoted first word.
+
+### 32 — `command` and `builtin`
+`command echo hi` skips aliases and functions, and still prefers the builtin. `builtin echo hi`
+skips aliases, functions *and* files, and uses the builtin only. `type -a echo` on this image shows
+the builtin plus `/opt/kestrel/bin/echo`, `/usr/bin/echo` and `/bin/echo`.
+
+### 33 and 34 — `PATH` order
+`echo "$PATH" | tr ':' '\n'` (or read it by eye) gives, on this image:
+`/opt/kestrel/bin`, `/usr/local/sbin`, `/usr/local/bin`, `/usr/sbin`, `/usr/bin`, `/sbin`, `/bin`.
+A directory you can write to, early in `PATH`, means anyone who can write there chooses what your
+commands do. Lab `bin/` in front → the fake `ls` runs. At the back → the real one runs, because the
+first match wins.
+
+### 39 — `type type`
+`type is a shell builtin`. It has to be: it answers from the shell's own tables, which no external
+program can see.
+
+### 40 and 41 — the hash table
+`hash -r` discards remembered locations, so the *next* run is slower by one `PATH` search and every
+run after is the same. In exercise 41, without `hash -r` the shell tries the remembered path,
+fails, and prints something like `bash: /path/to/bin/ls: No such file or directory` — the fix is
+`hash -r`. Bash usually retries the search itself; if the student sees a successful fallback rather
+than an error, that is the correct observation and the reason belongs in their notes.
+
+### 42 — recursive alias
+`alias echo='echo prefix:'` then `echo hello` prints `prefix: hello`, once — bash expands an alias
+whose name matches its own first word only once, which is why this does not loop forever.
+`\echo hello` prints `hello`: the backslash suppresses alias expansion.
+
+### 45 — the minimal-`PATH` failure
+The script calls a program by bare name that lives somewhere not in the reduced `PATH`. Good fix:
+call it by absolute path, or set `PATH` explicitly at the top of the script. Bad fix: append the
+missing directory to the *user's* interactive `PATH` and hope every future environment matches.
+
+### 46 — `which` in a script
+`which` is an external program; it knows nothing about the calling shell's functions, aliases or
+builtins, and its exit status and output differ between implementations. `command -v` is a builtin,
+answers the shell's own question, and is specified by POSIX.
+
+### 48 and 49 — aliases and scripts (Dig)
+Not visible. Aliases are a property of the interactive shell that defined them and are not exported;
+a script runs in a new shell. `shopt -s expand_aliases` turns expansion on in a non-interactive
+shell. It is off by default because a script's behaviour should not depend on the invoking user's
+personal shortcuts.
+
+### 50 — `enable -n echo` (Dig)
+With the builtin disabled, `type echo` reports `/opt/kestrel/bin/echo` and that file runs. `enable
+echo` restores the builtin, and `type echo` says `echo is a shell builtin` again.
+
+### 51 — non-executable file on `PATH` (Dig)
+Measured: with a readable but non-executable file as the only match on `PATH`, bash reports
+`Permission denied` and exits **126** — it does not silently pretend the name does not exist. If an
+executable file of the same name exists later in `PATH`, that one runs instead.
+
+### 52 — empty `PATH` element (Dig)
+A leading, trailing or doubled colon means "the current directory" — the same hazard as `.` in
+`PATH`, spelled invisibly. This image's `PATH` has none; the check is reading it one element per
+line and looking for a blank.
