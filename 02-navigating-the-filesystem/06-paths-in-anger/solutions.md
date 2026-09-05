@@ -218,6 +218,231 @@ for exactly this reason.
 
 ---
 
+## Added exercises 37–52
+
+**37.** `literal`, `shell`, `shell-escape` and `escape` all print:
+```
+deck.txt
+dеck.txt
+panel​.txt
+strain-log.txt
+strain‑log.txt
+```
+`locale` wraps each in `‘…’` and `c` in `"…"`. The four agree because the terminal's locale is
+UTF-8: the Cyrillic `е`, the non-breaking hyphen and the zero-width space are all **printable
+characters in this locale**, so no style has anything to escape. The escaping styles only differ from
+`literal` when they meet a byte the locale says is not printable.
+
+**38.** With `LC_ALL=C`, every multi-byte character becomes unprintable bytes:
+```
+escape:        d\320\265ck.txt
+c:             "d\320\265ck.txt"
+shell-escape:  'd'$'\320\265''ck.txt'
+```
+**Only `shell-escape` pastes back unchanged.** `escape`'s bare backslashes mean nothing to `bash`
+outside `$'…'`; `c`'s double quotes do not interpret `\320` the way C does. `shell-escape` emits
+`$'…'` around exactly the bytes that need it, which is bash syntax.
+
+**39.**
+```
+$ ls --quoting-style=shell-escape awkward
+' notes.txt'
+'deck 3 bay 2'
+notes.txt
+'notes.txt '
+'panel'$'\t''report.txt'
+'two'$'\n''lines.txt'
+
+$ ls --quoting-style=shell-escape-always awkward
+' notes.txt'
+'deck 3 bay 2'
+'notes.txt'
+'notes.txt '
+'panel'$'\t''report.txt'
+'two'$'\n''lines.txt'
+```
+Only `notes.txt` differs. Use the "always" form when the output is being read by a program or pasted
+in bulk: with it, *every* line is a quoted word, so a consumer never has to decide whether a given
+line was quoted. Uniformity beats brevity as soon as something other than a human is reading.
+
+**40.**
+```
+$ ls -N awkward | cat -A
+ notes.txt$
+deck 3 bay 2$
+notes.txt$
+notes.txt $
+panel^Ireport.txt$
+two$
+lines.txt$
+```
+**Seven lines for six entries.** `two\nlines.txt` is one name containing a newline, so it occupies
+two lines; `cat -A` also exposes the tab in `panel^Ireport.txt` and the trailing space before the `$`
+on line 4.
+
+**41.**
+```
+$ ls --zero awkward | cat -A
+ notes.txt^@deck 3 bay 2^@notes.txt^@notes.txt ^@panel^Ireport.txt^@two$
+lines.txt^@
+```
+NUL is safe because **it is the one byte a filename may not contain**. A path is a NUL-terminated
+string at the kernel interface, so the kernel could not store a name containing one. Newline, tab,
+space, quotes and backslash are all legal in a name; NUL alone is structurally impossible, which is
+why every careful tool pair (`find -print0`, `xargs -0`, `ls --zero`) settled on it.
+
+**42.** `QUOTING_STYLE=shell-escape ls awkward` reproduces exercise 39's first listing exactly. The
+cost of setting it permanently: your `ls` output stops matching everyone else's. Documentation,
+tutorials and your own scripts' expectations assume the default, and a name you can now paste is a
+name you can no longer read at a glance. Worse, a colleague at your keyboard sees quoting they did
+not ask for and mistakes it for part of the name.
+
+**43.**
+```
+$ ls dotted        → dot
+$ ls -a dotted     → .  ..  ...  ..double-dot  .cache  .hidden-note  dot
+$ ls -A dotted     → ...  ..double-dot  .cache  .hidden-note  dot
+```
+`-A` drops exactly `.` and `..`. Those two are not hidden files that happen to start with a dot: they
+are directory entries the filesystem itself maintains, pointing at this directory and its parent.
+Every other dotted name here is an ordinary file whose only distinction is the leading character.
+Note that `...` and `..double-dot` survive `-A` — they merely *look* like the special entries.
+
+**44.** `ls --ignore='*.txt' awkward` leaves:
+```
+deck 3 bay 2
+notes.txt 
+```
+`notes.txt ` has a **trailing space**: its name ends in a space, not in `.txt`, and `*.txt` requires
+the name to end in exactly those four characters. The pattern matches against the whole name, and one
+invisible byte at the end defeats it. This is the entire lesson of the lab in
+one flag: the eye reads `notes.txt`, the matcher reads `notes.txt `.
+
+**45.**
+```
+$ ls --hide='notes*' awkward
+ notes.txt
+deck 3 bay 2
+panel	report.txt
+two
+lines.txt
+
+$ ls -a --hide='notes*' awkward
+ notes.txt
+.
+..
+deck 3 bay 2
+notes.txt
+notes.txt 
+panel	report.txt
+two
+lines.txt
+```
+**`--hide` is cancelled by `-a` (and `-A`); `--ignore` is not** — `ls -a --ignore='notes*'` still
+suppresses them. Use `--ignore` in a script: its behaviour does not change depending on which other
+flags someone later adds. `--hide` is a convenience for interactive use, where `-a` meaning "no,
+really show me everything" is what you want.
+
+**46.**
+```
+$ ls -1i lookalikes
+300198 strain-log.txt
+300199 strain‑log.txt
+300200 deck.txt
+300201 dеck.txt
+300202 panel​.txt
+```
+Five distinct inodes, so five distinct files. Two names could refer to one file only if they were
+hard links — same device, same inode — which these are not and, for names that differ in their bytes,
+would have to be created deliberately.
+
+**47.**
+```
+$ ls -Rb report
+report:
+-summary.txt
+old\ runs
+strain\ 2187-06-12.csv
+strain\ 2187-06-13.csv
+
+report/old runs:
+run\ 1.log
+run\ 2.log
+
+$ ls report/old\ runs    → run 1.log   run 2.log
+$ ls "report/old runs"   → run 1.log   run 2.log
+
+$ ls report/old runs
+ls: cannot access 'report/old': No such file or directory
+ls: cannot access 'runs': No such file or directory
+```
+The unquoted form is **two arguments**, `report/old` and `runs`. In this lab both fail. Change the directory names slightly — a real `report/old` beside a real
+`runs` — and it succeeds, listing two directories that have nothing to do with the one you meant,
+with no error and no indication anything went wrong. **Silent success on the wrong target is worse
+than any error**, because nothing prompts you to look.
+
+**48.**
+```
+$ printf '%q\n' metachars/*
+metachars/\$HOME.txt
+metachars/dorn\'s\ notes.txt
+metachars/glob\*star.txt
+metachars/range\[0-9\].txt
+metachars/what\?.txt
+```
+`dorn's notes.txt` gets **two** escapes — the apostrophe and the space. `range[0-9].txt` gets both
+brackets escaped. `%q` uses backslashes rather than quotes precisely so it never has to solve the
+"apostrophe inside single quotes" problem that exercise 26 made you solve by hand.
+
+**49.**
+```
+$ stat -c '%N %s' metachars/*
+'metachars/$HOME.txt' 26
+"metachars/dorn's notes.txt" 26
+'metachars/glob*star.txt' 29
+'metachars/range[0-9].txt' 17
+'metachars/what?.txt' 22
+```
+`%N` prefers single quotes, but a name containing an apostrophe cannot be single-quoted, so for that
+one line it switches to double quotes. This is the same rule a careful human applies: use the quote
+character the name does not contain. It is not shell-safe in general — inside double quotes, `$HOME`
+would expand — which is why it is a *display* quoting, and `%q` or `shell-escape` is what you paste.
+
+**50.**
+```
+$ cd 'awkward/deck 3 bay 2' ; pwd
+/labs/02-navigating-the-filesystem/06-paths-in-anger/awkward/deck 3 bay 2
+$ cd - ; pwd
+/labs/02-navigating-the-filesystem/06-paths-in-anger/awkward
+```
+`cd -` reads `$OLDPWD`, which the shell set when you last changed directory. It survives spaces
+because the path never passes through the command line at all: the shell holds it as one string and
+hands it straight to `chdir`. Retyping the path by hand reintroduces every quoting hazard the lab is
+about.
+
+**51.** A filename may contain any byte except `/` and NUL, including the ESC that begins a terminal
+control sequence. `ls -N` writes those bytes straight to the terminal, so a name can move the cursor,
+repaint earlier lines, change colours, or — on terminals with title-setting and title-reporting both
+enabled — arrange for text of the attacker's choosing to appear as if you had typed it. `ls -q`
+replaces every non-printable byte with `?`, and `ls -b` replaces it with a visible backslash escape
+that also tells you which byte it was. **`-q` is the default when output is a terminal**; use `-b`
+when reading a directory that someone else can write to, because it is both safe and diagnostic.
+
+**52.**
+```
+$ stat -c '%N' lookalikes/dеck.txt
+'lookalikes/dеck.txt'
+
+$ LC_ALL=C ls --quoting-style=shell-escape lookalikes
+'d'$'\320\265''ck.txt'
+```
+**`shell-escape` round-trips.** Its `$'\320\265'` is bash syntax for those two exact bytes, so the
+word survives being pasted into any command. `%N`'s output is quoting for a *reader*: it makes the
+boundaries of the name visible, and in a UTF-8 terminal it does not escape the Cyrillic character at
+all — which is precisely the confusion the lab exists to teach you about.
+
+---
+
 ## Tutor notes
 
 - Exercises 14–19 are the chapter's incident in miniature. A student who finishes them can solve

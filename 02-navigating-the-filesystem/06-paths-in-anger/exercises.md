@@ -173,3 +173,99 @@ Cyrillic name and say which one you could paste into a command.
 option that makes it print such characters raw. Run both over `awkward`, and say which one you would
 use over an untrusted network connection and why. (Hint: a filename may contain terminal escape
 sequences.)
+
+---
+
+## Core — the eight quoting styles
+
+**37.** `--quoting-style` accepts eight values. Run `ls --quoting-style=X lookalikes` for
+`literal`, `locale`, `shell`, `shell-always`, `c` and `escape`. Four of the six produce **identical**
+output here. Report which four, and explain why — the answer is about your terminal's locale, not
+about the flag.
+
+**38.** Re-run the same six with `LC_ALL=C` in front. Now they differ. Report the line for the
+Cyrillic `deck.txt` under `escape`, under `c`, and under `shell-escape`. Say which of the three you
+could paste into a `cat` command unchanged.
+
+**39.** Run `ls --quoting-style=shell-escape awkward` and `ls --quoting-style=shell-escape-always
+awkward`. Report both. Three of the six names are quoted by the first and all six by the second —
+say when you would want the "always" form even though it is noisier.
+
+**40.** `ls -N` prints names raw. Run `ls -N awkward`, then run it again piped through `cat -A`
+(which marks tabs as `^I` and line ends as `$`). Report the second output. How many lines does the
+six-entry directory occupy, and which entry is responsible?
+
+**41.** `ls --zero` separates names with a NUL byte instead of a newline. Run it on `awkward` through
+`cat -A` and report what you see. Say why NUL is the one byte that is safe as a separator — the
+answer is a fact about what a filename may legally contain.
+
+**42.** There is an environment variable that sets the quoting style for every `ls` without a flag.
+Set it for one command only — `QUOTING_STYLE=shell-escape ls awkward` — and confirm the output
+matches exercise 39's first run. Then say why setting it permanently in your shell startup is a
+choice with a cost.
+
+---
+
+## Core — hiding, ignoring and inodes
+
+**43.** List `dotted` three ways: `ls`, `ls -a`, `ls -A`. Report all three. Say precisely which two
+entries `-A` drops that `-a` keeps, and why those two are special rather than merely hidden.
+
+**44.** Run `ls --ignore='*.txt' awkward`. Two entries survive. Report them, and explain why
+`notes.txt ` — which certainly ends in `.txt` to your eye — is one of the survivors.
+
+**45.** Run `ls --hide='notes*' awkward`. Report the output. Then run `ls -a --hide='notes*' awkward`
+and report that. `--hide` behaves differently under `-a` than `--ignore` does — state the difference
+and say which of the two you would use in a script.
+
+**46.** Report the inode number of each of the five entries in `lookalikes`, one per line. Confirm
+that all five are distinct. Then answer exercise 31's question again in one line, now with the
+numbers in front of you.
+
+---
+
+## Experiment — predict before you run
+
+**47.** **Predict first, in writing.** Predict the output of each, then run all four from the lab
+root:
+
+```bash
+ls -Rb report
+ls report/old\ runs
+ls "report/old runs"
+ls report/old runs
+```
+
+The last one produces two errors, not one. Explain exactly what `ls` was asked to do, then describe
+the arrangement of directory names under which that same command would succeed silently on the wrong
+targets — and say why that outcome is more dangerous than the error you got.
+
+**48.** **Predict first.** `printf '%q\n' metachars/*` prints each name in a form the shell will
+accept back. Predict how `dorn's notes.txt` and `range[0-9].txt` will come out, then run it. Report
+both lines and say which character got escaped in each.
+
+**49.** **Predict first.** Predict what `stat -c '%N %s' metachars/*` prints for
+`metachars/$HOME.txt` and for `metachars/dorn's notes.txt`. Then run it. `%N` switched quote
+characters between those two lines — say why, and which rule it is applying.
+
+---
+
+## Stretch
+
+**50.** From the lab root, change into `awkward/deck 3 bay 2`, confirm with `pwd`, and return with
+`cd -`. Report both `pwd` outputs. Then say what `cd -` reads to do that, and why it survives a name
+with spaces in it when a hand-retyped path might not.
+
+---
+
+## Dig
+
+**51.** A filename may contain terminal escape sequences. Explain, in three sentences, what
+`ls -N` on a directory containing such a name could do to your terminal, and what `ls -q` and
+`ls -b` each do about it. State which of the three is the default when output goes to a terminal, and
+which you would use when reading a directory someone else can write to.
+
+**52.** Compare `stat -c '%N'` against `LC_ALL=C ls --quoting-style=shell-escape` over `lookalikes`.
+Report the line each produces for the Cyrillic `deck.txt`. They escape the same bytes into different
+syntax — say which of the two is guaranteed to round-trip through `bash`, and what `%N` is quoting
+for instead.
