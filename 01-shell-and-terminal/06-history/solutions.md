@@ -243,3 +243,253 @@ Or the long form: `!!:s/sampler-notes.txt/maint-old-history/`.
 shorthand is documented at the end of the Event Designators subsection.
 
 It replaces the **first** occurrence only. `!!:gs/old/new/` replaces all of them.
+
+---
+
+## Added exercises 22–52
+
+### 22–23 — where the settings come from
+```
+$ echo "HC=[$HISTCONTROL] HS=[$HISTSIZE] HFS=[$HISTFILESIZE] HF=[$HISTFILE] HTF=[$HISTTIMEFORMAT]"
+HC=[ignoreboth] HS=[100000] HFS=[200000] HF=[/home/cadet/.bash_history] HTF=[%F %T ]
+```
+They are set in `~/.bashrc` — `HISTCONTROL` near the top, and `HISTSIZE`, `HISTFILESIZE` and
+`HISTTIMEFORMAT` again further down, which is why the values you see are the later ones.
+
+```
+$ bash -c 'echo "[$HISTSIZE]"'
+[]
+```
+Empty, because `~/.bashrc` is read by *interactive* shells only, and `bash -c` is not one. This is
+01/01's interactive/non-interactive split with a visible consequence: history settings — and history
+itself — are an interactive-shell feature.
+
+### 24 — memory versus disk
+`HISTSIZE` caps the list in memory; `HISTFILESIZE` caps `~/.bash_history` on disk. A pair like
+`HISTSIZE=1000 HISTFILESIZE=200000` gives a file far larger than any single session's list, because
+the file accumulates across sessions while the list is thrown away at exit. That is the usual
+arrangement, and it is useful precisely when you want to search back further than today.
+
+### 25–26 — duplicates
+With `HISTCONTROL=ignoredups`, three identical commands in a row produce **one** entry; running
+something else and then repeating the first produces a new entry, because `ignoredups` only compares
+against the *immediately previous* line, not the whole list. With `HISTCONTROL=` (empty) all five
+appear. Empty means "no options set" — it is not the same as unset in general, but here both give
+default behaviour.
+
+### 27 — patterns
+`HISTIGNORE`, a colon-separated list of patterns:
+```
+$ HISTIGNORE='history:history *'
+$ history
+$ history | tail -2
+```
+The `history` invocations no longer appear. Two patterns are needed because `HISTIGNORE` matches the
+whole line, so `history` alone does not cover `history 5`.
+
+### 28 — zero versus no file
+`HISTSIZE=0` gives an empty list — nothing is remembered in memory, so `history` prints nothing, and
+nothing can be written on exit either. `HISTFILE=` leaves the list working normally for the whole
+session and only suppresses the write at the end. One removes the convenience, the other removes the
+record.
+
+### 29 — forcing the write
+```
+$ history -a
+$ tail -3 ~/.bash_history
+```
+`history -a` appends this session's not-yet-written lines. Note the `#<epoch>` comment lines
+interleaved, because `HISTTIMEFORMAT` is set.
+
+### 30 — counting the old file
+```
+$ wc -l < maint-old-history
+12
+$ grep -vc '^#' maint-old-history
+6
+```
+Twelve lines, six commands — a factor of two, because every command is preceded by its `#<epoch>`
+timestamp line. Counting raw lines to count commands is the mistake this exercise exists to make you
+make once.
+
+### 31 — `history -c` and the file
+`history -c` cleared that shell's in-memory list, not the file. The commands *after* it accumulated
+in a fresh, empty list, and were written to the file when the session ended. The file therefore
+holds the commands from before the clear — written by some earlier session — and the ones from
+after it, with the cleared ones' fate depending on whether they had already been written.
+
+### 32–33 — the timeline
+```
+$ while read -r l; do
+>   case $l in '#'*) date -u -d @"${l#\#}" '+%F %T';; *) echo "  $l";; esac
+> done < maint-old-history
+2186-09-22 10:40:00
+  cd /var/log/station
+2186-09-22 10:41:00
+  ls -l
+2186-09-22 10:42:11
+  wc -l structural.log
+2186-09-22 10:43:22
+  history -c
+2186-09-22 10:43:24
+  ls -l
+2186-09-22 10:46:30
+  cat sampler-not
+```
+First epoch 6839203200, last 6839203590; difference 390 seconds, so six and a half minutes.
+
+Gaps in order: 60, 71, 71, **2**, 186. Two stand out in opposite directions. The two-second gap
+follows `history -c` — someone clearing history and immediately looking at something is one motion,
+not two decisions. The 186-second gap before the final, incomplete command is the long one: three
+minutes of nothing typed, then a command that never finished. Any account of it is inference, and
+should be labelled as such.
+
+### 34 — what history does not record
+Three, each with its reason: **anything typed with a leading space**, because `HISTCONTROL` here
+includes `ignorespace`; **anything typed into a program rather than the shell** — what was entered
+in `vim`, `less` or a password prompt is that program's business; and **everything the commands
+actually did** — the file records that `wc -l structural.log` was typed, never what it printed or
+whether it succeeded.
+
+### 35–36 — event designators
+After three commands, `!-2` re-runs the second-from-last. Bash echoes the expansion before running
+it, which is the whole safety mechanism.
+```
+$ ls sampler-notes.txt scratch
+$ echo !$
+echo scratch
+scratch
+$ echo !^
+echo sampler-notes.txt
+sampler-notes.txt
+$ echo !*
+echo sampler-notes.txt scratch
+sampler-notes.txt scratch
+```
+
+### 37 — the leading space
+` echo secret` does not appear in `history`, and does not appear in `$HISTFILE` after exit either —
+it never entered the list, and the file is written from the list. There is no second chance for it
+to be recorded.
+
+### 38 — no such event
+```
+$ !nosuchprefix
+bash: !nosuchprefix: event not found
+$ echo $?
+0
+```
+The message is the interesting part; the status is the surprise. The line was never run, so `$?`
+still holds the status of the command *before* it. Do not use `$?` to test whether a history
+expansion worked.
+
+### 39 — quoting and expansion
+`echo '!$'` prints `!$` literally. `echo "!$"` **expands** — history expansion happens before
+quoting is considered, and single quotes suppress it while double quotes do not. This is the one
+expansion in bash that single quotes stop and double quotes do not, and it catches people writing
+`grep "foo!" file`.
+
+### 40 — two rules
+One: prefer `Alt-.` while composing and `Ctrl-R` with `Esc`, so you see the text before Enter.
+Two: never put `!` inside double quotes in an interactive shell — use single quotes — because the
+expansion runs before you can see what it produced.
+
+### 41 — history files are not evidence by themselves
+```
+$ bash
+$ HISTFILE=scratch/elsewhere-history
+$ echo one; echo two; echo three
+$ exit
+$ cat scratch/elsewhere-history
+```
+The three commands are in `scratch/elsewhere-history` and not in `~/.bash_history`. A single history
+file shows what a shell chose to write; it does not show what an account did.
+
+### 42 — strong and weak
+Strong: the file is a contemporaneous record with timestamps, written by the shell rather than by
+the person, and it is hard to produce accidentally. Weak: it omits space-prefixed commands, omits
+everything typed inside other programs, and can be redirected wholesale by setting `HISTFILE`, as
+exercise 41 shows. It is therefore good evidence of *some* of what happened and no evidence at all
+of what did not.
+
+### 43 — the safe keys
+`Esc` (or the right arrow) puts the found command on the line instead of running it; `Ctrl-G`
+abandons the search entirely. The scenario: you `Ctrl-R` for `rm`, the first match is a longer,
+more destructive `rm` than the one you were thinking of, and `Enter` runs it before you have read
+the whole line.
+
+### 45–46 — `fc` and substitution
+```
+$ fc -l -5
+19	 echo alpha beta
+20	 echo beta
+...
+$ fc 20
+```
+`fc -l` lists; `fc N` opens entry N in an editor and runs it on save; `fc -s old=new` re-runs with a
+substitution. The short form is `^old^new^`:
+```
+$ echo alpha beta
+alpha beta
+$ ^alpha^gamma^
+echo gamma beta
+gamma beta
+```
+Note it applies to the **previous** command only, and only to the first occurrence.
+
+### 47 — print, do not run
+```
+$ echo beta
+beta
+$ !!:p
+echo beta
+```
+`:p` prints the expansion instead of running it. Nothing was executed — but the expanded line *is*
+added to the history list, so a following `!!` will run it. That is the point: `:p` is "show me,
+then let me press up".
+
+### 48 — head and tail of a path
+```
+$ echo /labs/01-shell-and-terminal/06-history/sampler-notes.txt
+$ echo !$:h
+echo /labs/01-shell-and-terminal/06-history
+$ echo !!:t
+echo 06-history
+```
+`:h` strips the last component (head), `:t` keeps only it (tail). Note the second one operated on
+the *previous* line's last word, which was already the directory — a small demonstration of why
+chaining these is easy to get wrong.
+
+### 49 — `histverify`
+```
+$ shopt -s histverify
+```
+With it set, `!!` and friends put the expanded line on your prompt for editing instead of running it
+immediately; you press Enter yourself. It converts every history expansion into the safe form from
+exercise 47. `shopt -u histverify` turns it off; the default here is off.
+
+### 50 — `history -n`
+`history -r` reads the whole file and appends all of it to your list, so running it twice gives you
+duplicates. `history -n` reads only lines that have been added since this shell last read the file,
+which is what you want in a shell you keep open next to others.
+
+### 51 — `histappend`
+`shopt -s histappend` makes the shell append to the file on exit instead of overwriting it. Default
+here is off:
+```
+$ shopt histappend
+histappend     	off
+```
+It fixes the case where the last shell to exit destroys another shell's contribution. It does not
+give you a *live* shared history — for that you still need `history -a` and `history -n`, because
+nothing is written until exit.
+
+### 52 — dates in one pass
+```
+$ while read -r l; do
+>   case $l in '#'*) date -u -d @"${l#\#}" '+%F %T';; *) echo "  $l";; esac
+> done < maint-old-history
+```
+`date -d @SECONDS` converts an epoch; the `while read` loop is Chapter 8's material, and `date`'s
+`-d` is documented in its own man page. A `case` and a loop are reaching ahead — Chapter 8 owns
+both — but the alternative is running `date` by hand six times, which is also a correct answer.

@@ -172,3 +172,185 @@ substitution applied** — fixing a typo without retyping the line. Find it in `
 `sampler-notes.txt` into one that references `maint-old-history`.
 
 *Done looks like:* the form, the command, and the echoed expansion.
+
+---
+
+## Core — the settings, one at a time
+
+**22.** Print the current value of `HISTCONTROL`, `HISTSIZE`, `HISTFILESIZE`, `HISTFILE` and
+`HISTTIMEFORMAT`, each labelled. Then find the file that sets them.
+
+*Done looks like:* five labelled values and the file's path.
+
+**23.** Run `bash -c 'echo "[$HISTSIZE]"'` and then the same thing in your interactive shell. The
+answers differ. Explain the difference using 01/01.
+
+*Done looks like:* both outputs and the explanation.
+
+**24.** `HISTSIZE` and `HISTFILESIZE` are two different numbers. Say precisely which one governs
+memory and which governs disk, and construct a setting pair where the file would hold *more* than
+the list ever did.
+
+*Done looks like:* the two roles and the pair, with one sentence on when that is useful.
+
+**25.** In a **child shell**, set `HISTCONTROL=ignoredups`, run the same command three times in a
+row, then run something else and the first command again. Report exactly which of the five entered
+the list.
+
+*Done looks like:* the list and the rule stated from evidence.
+
+**26.** In a **child shell**, set `HISTCONTROL=` (empty) and repeat exercise 25. Compare.
+
+*Done looks like:* both lists side by side and one sentence on what an empty value means here.
+
+**27.** There is a variable that stops specific *patterns* from being recorded, rather than
+duplicates or leading spaces. Find its name in `man bash`, and set it in a child shell so that
+`history` itself is never recorded.
+
+*Done looks like:* the variable, the setting, and evidence it worked.
+
+**28.** In a child shell, set `HISTSIZE=0`. Run three commands and check the list. Then say what
+distinguishes this from `HISTFILE=`.
+
+*Done looks like:* the observation and the distinction.
+
+---
+
+## Core — the file on disk
+
+**29.** Without exiting, get this session's new lines into `~/.bash_history`, then show the last
+three lines of the file and match them against what you ran.
+
+*Done looks like:* the command, the three lines, and the match.
+
+**30.** Count the entries in `maint-old-history` two ways: by counting all lines, and by counting
+only the command lines. The numbers differ by a factor.
+
+*Done looks like:* both numbers, the factor, and why.
+
+**31.** `maint-old-history` contains `history -c` followed by more commands. Using the README's
+description of when the file is written, explain in three sentences how both facts can be true at
+once.
+
+*Done looks like:* three sentences that account for the file's contents.
+
+**32.** Take the timestamp of the *first* command in `maint-old-history` and the *last*, and work
+out how long that session lasted. Show your arithmetic.
+
+*Done looks like:* both epochs, the difference, and the duration in minutes.
+
+**33.** Look at the gaps between consecutive timestamps in `maint-old-history`. One gap is much
+larger than the others. Say where it is and offer one plausible account of it.
+
+*Done looks like:* the gap in seconds, its position, and the account.
+
+**34.** Say what the history file does *not* record. List three kinds of thing a person did at that
+terminal that leave no trace in it.
+
+*Done looks like:* three items, each with one clause of justification.
+
+---
+
+## Experiment — predict before you run
+
+**35.** **Predict first.** Predict what `!-2` runs after you have run exactly three commands in a
+fresh child shell. Then run it.
+
+*Done looks like:* the prediction, the echoed expansion, and the result.
+
+**36.** **Predict first.** Predict what `echo !*` prints after `ls sampler-notes.txt scratch`.
+Compare to `!$` and `!^`.
+
+*Done looks like:* three predictions and three echoed expansions.
+
+**37.** **Predict first.** In a child shell, prefix `echo secret` with a space and run it, then run
+`history | tail -3`. Predict what you will see. Then predict whether the *space-prefixed* command
+appears in `$HISTFILE` after the shell exits.
+
+*Done looks like:* two predictions, two observations.
+
+**38.** **Predict first.** Run `!nosuchcommandprefix`. Predict the message and the exit status
+before you press Enter.
+
+*Done looks like:* the prediction, the message quoted, and the status.
+
+**39.** **Predict first.** You type `!$` inside **single quotes**: `echo '!$'`. Predict whether
+history expansion happens. Then try it inside double quotes.
+
+*Done looks like:* both predictions, both results, and the rule about when expansion runs.
+
+---
+
+## Stretch
+
+**40.** History expansion happens before the command runs and before you can see the result. Write
+down two rules you will follow to keep that from hurting you, and justify each in one sentence.
+
+*Done looks like:* two rules with justifications.
+
+**41.** Using 01/04: `HISTFILE` is an ordinary variable, so it can be changed mid-session. In a
+child shell, point it at a file in `scratch/`, run three commands, exit, and read that file.
+
+*Done looks like:* the file's contents and one sentence on what this means for trusting any single
+history file.
+
+**42.** Someone claims "the history file proves what the account did". Write three sentences on
+where that claim is strong and where it is weak, using only what you have demonstrated in this
+lesson.
+
+*Done looks like:* three sentences, with at least one concrete weakness you have shown yourself.
+
+**43.** Using 01/05: name the two keys that make `Ctrl-R` safe, and describe a scenario where using
+the wrong one runs a command you did not intend.
+
+*Done looks like:* both keys and the scenario.
+
+**44.** Reconstruct, from `maint-old-history` alone, a short account of what that person was doing
+and in what order. Mark clearly which parts are read from the file and which are your inference.
+
+*Done looks like:* a short paragraph with inference marked.
+
+---
+
+## Dig
+
+**45.** There is a builtin that lists, edits and re-runs history entries and is the ancestor of `!!`.
+Find it, use it to list a range of entries by number, and use it to re-run one.
+
+*Done looks like:* both invocations and their output.
+
+**46.** That builtin has a form that re-runs the previous command with a substitution. There is also
+a shorter `^old^new` form. Use both to fix `cat sampler-note` into `cat sampler-notes.txt`.
+
+*Done looks like:* both forms and both echoed expansions.
+
+**47.** Find the history-expansion **modifier** that prints the expansion instead of running it.
+Attach it to a `!!` and show that nothing ran.
+
+*Done looks like:* the modifier and the evidence nothing ran.
+
+**48.** Find the modifiers that extract just the directory part and just the file part of a
+`!$`-style word. Use both on a path from this lab.
+
+*Done looks like:* both modifiers and both outputs.
+
+**49.** There is a shell option, settable with `shopt`, that makes history expansion put the result
+on your line for confirmation instead of running it immediately. Find it, turn it on in a child
+shell, and demonstrate the change.
+
+*Done looks like:* the option name, the command, and the before/after.
+
+**50.** Find the `history` flag that reads only the file's *new* lines into your list, and say how it
+differs from `history -r` when you have run it once already.
+
+*Done looks like:* the flag and the difference.
+
+**51.** Find the shell option that appends to the history file on exit instead of overwriting it.
+Say which of the README's two-shells problems it fixes and which it does not.
+
+*Done looks like:* the option and both halves of the answer.
+
+**52.** Convert every `#` line in `maint-old-history` into a readable date, in one command, without
+editing the file. You may reach ahead for a tool; name the chapter that owns it.
+
+*Done looks like:* the command, the dated output, and the chapter named.
