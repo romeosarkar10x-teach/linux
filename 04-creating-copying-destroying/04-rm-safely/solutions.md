@@ -330,6 +330,99 @@ expands to a *list*: `rm -rf "$DIR"/ *`, or `rm -rf $DIR/*` with `DIR` empty, wh
 the arguments it is handed; by the time it can apply a failsafe, the shell's substitution has already
 turned the mistake into a set of perfectly ordinary-looking paths.
 
+## Added exercises 49–52
+
+**49.**
+
+```
+$ rm -f nope        ; echo $?      # 0, no message
+$ rm nope
+rm: cannot remove 'nope': No such file or directory   # status 1
+$ mkdir e; rm -d e  ; echo $?      # 0
+$ mkdir -p n/x; rm -d n
+rm: cannot remove 'n': Directory not empty            # status 1
+```
+
+`-f` means "the absence of the file is not an error", which is why it belongs in cleanup scripts run
+under `set -e` and does **not** mean "delete harder". `-d` removes an empty directory and nothing
+else — it fails on a non-empty one exactly as `rmdir` does. It exists so that a single `rm` command
+can clear a list of mixed files and empty directories without the caller having to sort them into
+two lists and call two programs; `rmdir` remains the right tool when you want the failure on a
+non-empty directory to be the *point*.
+
+**50.**
+
+```
+$ touch u; unlink u ; echo $?      # 0
+$ mkdir ud; unlink ud
+unlink: cannot unlink 'ud': Is a directory            # status 1
+```
+
+`unlink` is a thin wrapper over the `unlink(2)` system call: one operand, no options, no recursion,
+no `-f`, no prompting. What it can do that `rm` cannot is nothing about capability — it is about
+what it *refuses*: it cannot be handed a glob that expanded to more than you meant, it cannot recurse,
+and it will not remove a directory. `rm` does all of those, and the flags that make it convenient are
+the same flags that make it dangerous. `unlink` is the tool for the line in a script where you want
+one specific name gone and want any surprise to be an error.
+
+**51.** Three operands: **no prompt** — the files are simply removed. Four operands:
+
+```
+rm: remove 4 arguments?
+```
+
+Recursive, one operand:
+
+```
+rm: remove 1 argument recursively?
+```
+
+The two triggers are: more than three operands, or `-r`. Everything else goes through silently.
+
+That is precisely why `-I` is the flag worth putting in an alias and `-i` is not. `-i` prompts once
+per file, so the habit it builds is holding down `y` — a reflex that answers the one prompt that
+mattered along with the ninety that did not. `-I` stays out of the way for the small deliberate
+deletions that make up most of your day and speaks up for the two shapes that are actually
+catastrophic: a glob that matched more than you thought, and a recursive delete. A prompt you read is
+worth a hundred you dismiss.
+
+**52.**
+
+```
+$ find tree -exec rm {} \;
+rm: cannot remove 'tree': Is a directory
+rm: cannot remove 'tree/a': Is a directory
+rm: cannot remove 'tree/a/b': Is a directory
+$ find tree | sort
+tree
+tree/a
+tree/a/b
+```
+
+The files are gone and every directory is left. `find … -delete` removes the whole tree and exits 0.
+
+The reason is traversal order. `find`'s default is pre-order — a directory is visited *before* its
+contents — so `-exec rm` reaches each directory while it is still full, and `rm` without `-r` refuses
+it. `-delete` implies `-depth`:
+
+```
+$ find tree -depth -print
+tree/a/b
+tree/a
+tree
+```
+
+Deepest first, so every directory is already empty by the time `find` gets to it, and a plain
+`rmdir(2)` succeeds. The ordering is not a detail of the implementation, it *is* how a
+non-recursive remover can delete a tree.
+
+For a filename containing a newline, `-delete` — and it is not close. `-delete` acts on the path
+`find` already holds; nothing is re-parsed, no shell is involved, and no filename is ever turned back
+into text that something has to split. `-exec rm {} \;` is also safe here (the argument is passed as
+one word, no shell), but the pipeline people reach for instead — `find … | xargs rm` — is not, because
+`xargs` splits on whitespace including newlines and would try to remove two files that do not exist
+while leaving the real one. If you must build a pipeline, `-print0` with `xargs -0`.
+
 ## Notes for the authoring/tutor agent
 
 - Exercise 7's rc is **0** and exercise 25's rc is **1**; both are easy to state backwards from

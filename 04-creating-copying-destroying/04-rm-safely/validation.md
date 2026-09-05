@@ -162,6 +162,26 @@ someone who has actually run out of disk at 03:00.
 
 ---
 
+## Added exercises (49–52)
+
+**49.** *Accept:* status 0 and silence from `rm -f`, status 1 and `No such file or directory` from
+plain `rm`, `rm -d` succeeding on the empty directory and failing with `Directory not empty` on the
+other. *Distinction:* states `-f` means "absent is not an error", not "force harder".
+
+**50.** *Accept:* `unlink u` exiting 0 and `unlink: cannot unlink 'ud': Is a directory` with status 1,
+plus the point that `unlink` takes exactly one operand and never recurses. *Reject:* claiming
+`unlink` is faster or safer at the syscall level — it is the same call.
+
+**51.** *Accept:* no prompt for three operands, `rm: remove 4 arguments?` for four,
+`rm: remove 1 argument recursively?` for the recursive case, and both triggers named. *Distinction:*
+the argument that `-i` trains a reflex that defeats prompting.
+
+**52.** *Accept:* `-exec rm {} \;` leaving every directory with `Is a directory` errors, `-delete`
+removing the tree, and `-depth` ordering identified as the mechanism. *Distinction:* explains that a
+directory can only be removed once empty, so depth-first *is* what makes a non-recursive remover
+sufficient. *Accept for the newline part:* `-delete`, with `find | xargs rm` named as the unsafe
+pipeline and `-print0`/`xargs -0` as the fix.
+
 ## Roll-up
 
 **Clean pass.** All six tiers attempted; predictions written before every Experiment run; exercise

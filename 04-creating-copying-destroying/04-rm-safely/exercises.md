@@ -199,3 +199,35 @@ your construction and the exact error.
 **48.** Two names for the same danger. Explain, in terms of what the *shell* does before `rm` ever
 runs, why `rm -rf "$DIR"/` with `DIR` unset is not the same risk as `rm -rf /` — and why the failsafe
 that catches the second one cannot catch the first.
+
+---
+
+## Core — the other removers
+
+**49.** Three exit statuses, in `scratch/`. Run `rm -f nope` and `rm nope` on a name that does not
+exist and report both statuses and any message. Then `mkdir e; rm -d e` and `mkdir -p n/x; rm -d n`,
+and report those two. State what `-d` is for and why it exists when `rmdir` already does.
+
+**50.** `unlink` is a separate command. Run `unlink` on a file you made and on a directory you made,
+and report both results. Then say what `unlink` can do that `rm` cannot, and what `rm` does that
+`unlink` deliberately does not — one sentence each. (`man 1 unlink` is four lines; read all of them.)
+
+---
+
+## Experiment — predict before you run
+
+**51.** **Predict first.** In `scratch/`, make files `a b c` and run `rm -I a b c </dev/null`.
+Predict whether it prompts. Then make four files and repeat with all four. Then make a directory
+with something in it and run `rm -I -r` on it — one operand this time. Report the exact prompt text
+in each case that prompts, and state `-I`'s two trigger conditions. Then say why `-I` is the flag to
+put in an alias and `-i` is not.
+
+---
+
+## Stretch
+
+**52.** `find scratch/tree -delete` and `find scratch/tree -exec rm {} \;` look equivalent and are
+not. Build a small tree twice and run one on each. Report which one removes the directories as well,
+and use `find scratch/tree -depth -print` to explain the ordering that makes it possible — a
+directory cannot be removed until it is empty, so the traversal order *is* the mechanism. Then say
+which of the two you would use on a tree containing a filename with a newline in it, and why.
