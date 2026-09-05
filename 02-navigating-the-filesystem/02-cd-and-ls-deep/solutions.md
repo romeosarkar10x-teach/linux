@@ -205,6 +205,225 @@ were created and which slots freed-up entries reused. Useless for humans; occasi
 surviving evidence of the sequence in which a directory was built. Do not oversell this — on many
 modern filesystems the order is a hash and encodes nothing.
 
+
+---
+
+## Added exercises 26–52
+
+All output below was taken from the running container. `$LAB` is
+`/labs/02-navigating-the-filesystem/02-cd-and-ls-deep`.
+
+**26.** Left to right: mode, link count, owner, group, size, modification time, name. The **name** is
+the one not stored in the inode — it lives in the directory entry that points at the inode, which is
+exactly why one inode can have several names.
+
+**27.**
+```
+$ ls -l logs | head -1
+total 920
+```
+It counts the disk blocks allocated to the listed files, not their byte sizes and not the number of
+files. The unit is 1K blocks here — evidence: `ls -s logs` reports 880 for the 900000-byte file, and
+900000/1024 rounds to 880. `ls -sk` gives the same numbers, confirming K.
+
+**28.**
+```
+$ ls -ln logs | head -2
+total 920
+-rw-r--r-- 1 0 0 900000 Jun 10  2187 hull-2187-06-10.log
+```
+`-n`. Both numbers are `0` — root. Without `-n`, `ls` looks the numbers up in `/etc/passwd` and
+`/etc/group` to print names; the numbers are what the inode actually holds.
+
+**29.**
+```
+$ ls -ld logs
+drwxr-xr-x 3 root root 4096 ... logs
+```
+Three: `logs/.` (the entry inside itself), the `logs` entry in the lab root, and `logs/.rotated/..`.
+Every subdirectory adds one, so a directory's link count is 2 plus the number of subdirectories.
+
+**30.**
+```
+$ ls -i logs
+300112 hull-2187-06-10.log   300108 strain-2187-06-11.log   ...
+```
+An inode number identifies a file *within one filesystem*. Two files in different directories can
+absolutely share one — that is a hard link. Two files on different filesystems can share a number
+while being unrelated, which is why the number alone is not an identity.
+
+**31.** They run 300108–300112. The seed script created the five files in one loop, and the
+filesystem handed out consecutive inodes, so the order 300108…300112 matches
+`strain-06-11, strain-06-12, strain-06-13, thermal-06-13, hull-06-10` — the order in the script, not
+the alphabetical order and not the mtime order. Hedge: consecutive allocation is a common
+implementation choice, not a guarantee, and a filesystem that reuses freed inodes will scramble it.
+It is a hint, not evidence.
+
+**32.**
+| time | flag | name |
+| modification | `ls -l` (default) | mtime — when the contents last changed |
+| access | `ls -lu` | atime — when the contents were last read |
+| status change | `ls -lc` | ctime — when the inode last changed |
+
+**33.** mtime and atime show 2187; ctime shows the day the lab was seeded. `touch -d` sets mtime and
+atime to whatever you ask, but it cannot backdate ctime — changing the inode *is* a status change,
+so the kernel stamps it with the real clock. This is the single most useful fact about ctime.
+
+**34.**
+```
+$ ls -t logs    # strain-06-12, thermal-06-13, strain-06-13, strain-06-11, hull-06-10
+$ ls -tu logs   # identical order
+$ ls -tc logs   # hull-06-10, thermal-06-13, strain-06-13, strain-06-12, strain-06-11
+```
+mtime and atime agree exactly, because `touch -d` set both together. The ctime order is different
+from both and is not random: it is the reverse of the order the seed script touched the files in, so
+ctime is recording the seeding, not the station's history.
+
+**35.**
+```
+$ ls -l --time-style=full-iso logs | head -2
+total 920
+-rw-r--r-- 1 root root 900000 2187-06-10 01:20:00.000000000 +0000 hull-2187-06-10.log
+```
+
+**36.** atime is the one that answers it, and the reason to distrust it is that reading is not the
+only thing that sets it and mounting is not the only thing that stops it: filesystems are commonly
+mounted `relatime` or `noatime` for performance, in which case atime is stale or frozen by design.
+Here it is worse than stale — `touch` wrote it, so it records a lie about a read that never happened.
+
+**37.** `ls logs` prints five names in columns; `ls logs | cat` prints one per line. `ls` calls
+`isatty` on its own standard output and only formats columns when the answer is yes. Same reason
+`--color=auto` produces nothing through a pipe.
+
+**38.**
+```
+$ ls -w 40 logs
+hull-2187-06-10.log
+strain-2187-06-11.log
+...
+```
+The names are 19–21 characters, so at 40 columns two would need 42; one per line is all that fits.
+With no `-w` and no terminal, `ls` uses `$COLUMNS` if set, and otherwise the one-per-line form, since
+there is no width to fit anything to.
+
+**39.**
+```
+$ ls -p          # Archive/  archive/  current  deep/  empty-bay/  logs/  runs/
+$ ls -F          # Archive/  archive/  current@ deep/  empty-bay/  logs/  runs/
+```
+`-p` marks directories only. `-F` marks more kinds, and gives `current` an `@` for symlink. `-F`
+would also add `*` for executables and `|` for FIFOs; there are none here.
+
+**40.**
+```
+$ ls -m logs
+hull-2187-06-10.log, strain-2187-06-11.log, strain-2187-06-12.log,
+strain-2187-06-13.log, thermal-2187-06-13.log
+```
+Comma-separated. `m` for "comma" is not a fair hint from the letter alone; the honest answer to the
+prediction is a guess, and `man ls` is faster than guessing.
+
+**41.** It prints nothing. `--hide` excludes the five `.log` files, and the two remaining entries —
+`.keep` and `.rotated` — are dotfiles, which are already excluded because `--hide` does not imply
+`-a`. Everything is filtered by one rule or the other. (`--hide` is also ignored entirely when `-a`
+or `-A` is given, which is worth noticing.)
+
+**42.**
+```bash
+ls -lhAt logs
+```
+- `-l` long format
+- `-h` sizes as `879K` rather than `900000`
+- `-A` dotfiles, but not `.` and `..`
+- `-t` newest first
+
+The "newest first" here is `-t`; a student who read "newest first" as needing `-r` has inverted it.
+There is no `.log` filter — `ls` cannot do that, and every non-dot entry in `logs` happens to be one.
+
+**43.**
+```
+$ bash -ic 'type ls'
+ls is aliased to `ls --color=auto'
+$ bash -lc 'type ls'
+ls is /opt/kestrel/bin/ls
+```
+Aliases are an interactive convenience and are not expanded in non-interactive shells; that is
+deliberate, because a script's behaviour must not depend on the operator's personal shortcuts.
+
+**44.** Column layout (exercise 37) and `--color=auto` both branch on `isatty`. So does the choice
+of `-1` as the fallback format. A script must not rely on any of them, because the script's output
+is usually a pipe or a file and the formatting silently changes under it — parse `-1` output or, in
+Chapter 7's terms, do not parse `ls` at all.
+
+**45.**
+```
+$ ls -l current
+lrwxrwxrwx 1 root root 4 ... current -> logs
+$ ls -lL current
+total 920
+-rw-r--r-- 1 root root 900000 Jun 10  2187 hull-2187-06-10.log
+... (five files)
+```
+`-L` dereferences: `ls` stops describing the link and describes what it points at, which for a
+directory means listing its contents. One sentence: `-L` makes `ls` follow symlinks instead of
+reporting them.
+
+**46.** `ls` cannot do it. It sorts within the arguments it is given, it does not recurse and sort
+as one set — `ls -lRS deep logs` sorts each directory separately, and `ls -S deep/*` only sees one
+level. The tool wanted is `find` (Chapter 5) to produce the set, and something to sort it. Say so
+and stop.
+
+**47.**
+```
+$ ls -f logs
+thermal-2187-06-13.log  strain-2187-06-13.log  strain-2187-06-12.log  .rotated
+hull-2187-06-10.log  .  strain-2187-06-11.log  .keep  ..
+$ ls -U logs
+thermal-2187-06-13.log  strain-2187-06-13.log  strain-2187-06-12.log
+hull-2187-06-10.log  strain-2187-06-11.log
+```
+Two differences: `-f` implies `-a`, so the dotted entries and `.`/`..` appear; and `-f` also
+disables `-l`-style stat calls, which is why it is the fast one on a huge directory. The order of
+the five ordinary files is identical, because both are unsorted.
+
+**48.** `.` appears sixth and `..` last, with real files before and after both. Directory order is
+hash order on this filesystem, not creation order, so `.` and `..` having no special position is the
+point: they are ordinary entries. A student who expected them first has been reading listings, not
+directories.
+
+**49.** `-Q` (`--quote-name`):
+```
+$ ls -Q logs
+"hull-2187-06-10.log"
+...
+```
+It exists for names containing spaces, newlines, or control characters — where the unquoted listing
+is ambiguous about where one name stops. Example: a file called `strain 2187 06.log` is three words
+in a plain listing and one quoted string with `-Q`.
+
+**50.** `--zero`. It separates entries with a NUL byte, which is the one byte that cannot appear in a
+filename, so the output is unambiguous even for names with newlines in them. It is consumed by
+`xargs -0` and by `while IFS= read -r -d ''` loops — Chapter 5 and Chapter 8.
+
+**51.**
+```
+$ ls -s logs
+880 hull-2187-06-10.log   4 strain-2187-06-11.log   24 strain-2187-06-12.log
+  4 strain-2187-06-13.log   8 thermal-2187-06-13.log
+```
+Both small files occupy one 4096-byte block, reported as 4 (K). The prediction is that 4097 bytes is
+the first size needing a second block. Tested:
+```
+$ head -c 4096 /dev/zero > a.bin; head -c 4097 /dev/zero > b.bin; ls -s a.bin b.bin
+4 a.bin
+8 b.bin
+```
+Exactly on the boundary.
+
+**52.** `ls -l logs` says `total 920`. The byte sizes sum to 931880, which is 910K. The gap is
+per-file rounding: every file is charged whole 4K blocks, so the four small files together consume
+40K of allocation for 31880 bytes of data. Allocation is always at least the data and usually more.
+
 ---
 
 ## No flag in this lesson

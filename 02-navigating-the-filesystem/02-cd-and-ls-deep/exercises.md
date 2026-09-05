@@ -126,3 +126,159 @@ what is being rounded and to what — you are not expected to be certain, and Ch
 **25.** There is an `ls` flag that turns off sorting entirely and prints entries in the order the
 directory itself stores them. Find it, use it on `logs`, and say why a listing in that order is
 almost never what a person wants but is sometimes exactly what a forensic examiner wants.
+
+---
+
+## Core — the columns of a long listing
+
+**26.** Run `ls -l logs`. Name all seven fields on one line, left to right, and say which of the
+seven is *not* stored in the file's inode.
+
+*Done looks like:* seven names and the odd one out.
+
+**27.** The first line of `ls -l logs` is not a file. Quote it, say what the number counts, and find
+out what unit it is in.
+
+*Done looks like:* the line, the meaning, and the unit with your evidence.
+
+**28.** Get the same listing with numeric user and group instead of names. Report the flag and the
+two numbers, and say where `ls` was looking up the names before.
+
+*Done looks like:* the flag, the output, and the lookup source.
+
+**29.** The link-count column reads `1` for every file in `logs` but not for the directories in the
+lab root. Report `logs`'s own count, and account for the number exactly.
+
+*Done looks like:* the number and the arithmetic.
+
+**30.** Print the listing with each file's inode number. Say what an inode number identifies, and
+whether two files in different directories could share one.
+
+*Done looks like:* the flag, the numbers, and the answer.
+
+**31.** Show that the inode numbers in `logs` are consecutive, and say what that tells you about the
+order the files were created in — and how confident you can be.
+
+*Done looks like:* the numbers and a hedged conclusion.
+
+---
+
+## Core — three times, not one
+
+**32.** `ls -l` shows one time. There are two others. Find the flags for all three on `logs` and
+record what each is called.
+
+*Done looks like:* three commands and three names.
+
+**33.** Two of those three show dates in 2187 and one shows today. Report which, and explain the
+split from what the seed script did.
+
+*Done looks like:* the split and the explanation.
+
+**34.** Sort `logs` by each of the three times in turn. Report where the three orders differ.
+
+*Done looks like:* three orders and the differences.
+
+**35.** Get the modification times of `logs` printed in full ISO form, to the second. Report the
+flag and one line of output.
+
+*Done looks like:* the flag and the line.
+
+**36.** Say which of the three times you would trust to answer "when did somebody last read this
+file", and give one reason that trust is weaker than it looks.
+
+*Done looks like:* the answer and the caveat.
+
+---
+
+## Experiment — predict before you run
+
+**37.** **Predict first.** Predict the output shape of `ls logs` versus `ls logs | cat`, then run
+both. Explain what `ls` is detecting.
+
+*Done looks like:* two predictions, two outputs, and the mechanism.
+
+**38.** **Predict first.** Predict what `ls -w 40 logs` does to the columns, then run it. Then work
+out what `ls` uses when there is no `-w` and no terminal.
+
+*Done looks like:* the prediction, the run, and the fallback.
+
+**39.** **Predict first.** Predict the difference between `ls -F` and `ls -p` on the lab root. Run
+both. Name the character each gives `current`, if any.
+
+*Done looks like:* the prediction and the two outputs.
+
+**40.** **Predict first.** Predict what `ls -m logs` produces from the flag letter alone, then run
+it.
+
+*Done looks like:* the guess, the output, and whether the letter was a fair hint.
+
+**41.** **Predict first.** Predict whether `ls --hide='*.log' logs` prints anything at all. Then run
+it and account for the result.
+
+*Done looks like:* the prediction and the explanation.
+
+---
+
+## Stretch
+
+**42.** Write one command that lists, from the lab root, every `.log` file under `logs` with a
+human-readable size, newest first, dotfiles included but not `.` or `..`. Expand every flag.
+
+*Done looks like:* the command and one line per flag.
+
+**43.** Using 01/02: `ls` is aliased in your interactive shell but not in a script. Prove both, and
+say in one sentence why that difference is deliberate.
+
+*Done looks like:* two proofs and the sentence.
+
+**44.** Using 01/04: `ls` behaves differently when its output is a terminal. Name two other
+behaviours in this lesson that depend on that same test, and say why a script should never rely on
+any of them.
+
+*Done looks like:* two behaviours and the rule.
+
+**45.** `ls -l current` and `ls -lL current` do not just differ in one field — they answer two
+different questions. Run both, report what each printed, and name the flag's job in one sentence.
+
+*Done looks like:* both outputs and the sentence.
+
+**46.** Someone asks for "the five biggest files under `deep` and `logs` together". Say honestly
+what `ls` can and cannot do here, and what tool you would want. Do not use it.
+
+*Done looks like:* the limitation named and the wish.
+
+---
+
+## Dig
+
+**47.** Find the flag that suppresses sorting *and* implies `-a`, and use it on `logs`. Compare its
+output to `-U`. Report the two differences.
+
+*Done looks like:* both flags, both outputs, two differences.
+
+**48.** From `ls -f logs`, report the position of `.` and `..` in the raw directory order. Say what
+that suggests about how the directory was built.
+
+*Done looks like:* the positions and the inference.
+
+**49.** Find the flag that quotes every name in the output. Run it on `logs` and say what problem
+the flag exists to solve, with an example filename that would need it.
+
+*Done looks like:* the flag, the output, and the example.
+
+**50.** Find how to make `ls` print the whole listing with `\0` between entries instead of newlines,
+and say what consumes that form. Show the flag; you do not need to make sense of the raw output.
+
+*Done looks like:* the flag and the consumer.
+
+**51.** `ls -s` on `logs` reports 4 for a 180-byte file and 4 for a 1400-byte file. Report both, and
+work out the smallest number of bytes that would push a file to 8. Test your answer with a file you
+create in your home directory.
+
+*Done looks like:* the numbers, the prediction, and the test.
+
+**52.** `ls -s` totals do not equal the sum of the byte sizes divided by the block size. Report both
+totals for `logs` and account for the gap in one sentence.
+
+*Done looks like:* two numbers and the sentence.
