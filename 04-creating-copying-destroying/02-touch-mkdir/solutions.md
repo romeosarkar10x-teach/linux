@@ -216,6 +216,159 @@ this container has no LSM providing one, so there is no context to print. `mkdir
 `--context` exist for systems where a newly created directory would otherwise get a default context
 that is wrong for its contents; here they are inert.
 
+## Added exercises 43–52
+
+**43.**
+
+```
+$ mkdir ok1 ok1 ok2
+mkdir: cannot create directory ‘ok1’: File exists
+$ echo $?
+1
+$ ls
+ok1  ok2
+```
+
+`mkdir` processes operands left to right, independently. The failure on the second `ok1` does not
+stop `ok2` from being created; the exit status is 1 because *at least one* operand failed. This is
+the standard coreutils contract, and it means a non-zero status tells you something went wrong but
+not how much got done.
+
+**44.**
+
+```
+$ mkdir ""
+mkdir: cannot create directory ‘’: No such file or directory
+```
+
+Status 1. The empty string is a legal C string but never a legal pathname, so `mkdir("")` returns
+`ENOENT` — "no such file or directory" — which is what the kernel says about a path that resolves to
+nothing. The message reads as though something is missing; what is missing is the path itself.
+
+**45.**
+
+```
+$ rmdir k
+rmdir: failed to remove 'k': Directory not empty
+$ echo $?
+1
+$ rmdir --ignore-fail-on-non-empty k
+$ echo $?
+0
+```
+
+The second form does not remove anything — it suppresses only the non-empty failure, which is what
+makes it usable in cleanup scripts. `rmdir -p k/l/m` then removes `m`, `l` and `k` in that order and
+stops when it runs out of components; `ls k` afterwards gives
+`ls: cannot access 'k': No such file or directory` with status 2. Unlike exercise 26 there is nothing
+non-empty left behind at any level, so the climb goes all the way to the top of the path it was
+given — and no further, because `-p` climbs the *operand*, not the filesystem.
+
+**46.**
+
+```
+$ mkdir -p x/y/../z
+$ find x -type d | sort
+x
+x/y
+x/z
+```
+
+Three directories, and `x/y` exists even though nothing in the final path names it. `mkdir -p` walks
+the components left to right and creates each one that is missing, so it created `x`, then `x/y`,
+then applied `..` to step back to `x`, then created `z`. It did not canonicalise the path first — if
+it had, `x/y` would never have existed. Real scripts hit this when a variable expands to a path with
+a `..` in it and leaves a stray directory behind.
+
+**47.** `touch -h` changes the timestamps of the **symlink itself**; without `-h`, `touch` follows the
+link and stamps the target.
+
+```
+$ touch -h -d '2187-01-01' build/link-to-anchor
+$ stat -c '%y %n' build/link-to-anchor times/anchor.txt
+2187-01-01 00:00:00.000000000 +0000 build/link-to-anchor
+2187-05-17 04:02:00.000000000 +0000 times/anchor.txt
+```
+
+The target is untouched. The plain form would have set `times/anchor.txt` to 2187-01-01 and left the
+link's own mtime alone — which is why `-h` exists at all: a link's timestamps are otherwise almost
+unreachable. (Chapter 3 lesson 06 used the same distinction on dangling links.)
+
+**48.** Status **0**. `mkdir -p` on a symlink that points at an existing directory succeeds, because
+`-p`'s test is "does the path already resolve to a directory", and a symlink to a directory does.
+Exercise 10's `bay-02` failed because it resolves to a regular file. The refined rule:
+
+> `mkdir -p PATH` exits 0 when every component of PATH either exists as a directory (after symlink
+> resolution) or can be created; it fails only when a component exists and is *not* a directory.
+
+**49.**
+
+```
+drwx------ … m1
+-rw------- … m2
+```
+
+`0777 & ~077 = 0700` for the directory and `0666 & ~077 = 0600` for the file — the file never gets
+the execute bits regardless of the umask, which is the exercise 22 point again. The parentheses
+matter because `umask` is a shell builtin that changes the *shell's* state: run without a subshell it
+would persist for the rest of the session and quietly change the mode of everything you created
+afterwards.
+
+**50.**
+
+```
+$ echo a{b,{c,d}}e
+abe ace ade
+$ echo x{,,}
+x x x
+$ echo pre{}post
+pre{}post
+$ echo {1..10..3}
+1 4 7 10
+```
+
+Nested braces expand outwards then inwards, so the inner list is flattened into the outer one.
+`x{,,}` has three empty alternatives and so produces the word three times — empty is a legal
+alternative. `{}` is **not** an expansion: brace expansion needs either a comma or a `..` range
+inside, so `pre{}post` is left completely alone and passed through literally (this is why `find -exec
+… {} \;` works unquoted). `{1..10..3}` steps by 3 and stops at 10 because 10 is on the step;
+`{1..10..4}` would stop at 9.
+
+**51.**
+
+```
+$ stat -c '%x|%y|%z|%w' times/anchor.txt
+2187-05-17 04:02:00…|2187-05-17 04:02:00…|<now>|<creation time>
+```
+
+After a `touch -d`, mtime moves to the value you asked for and **ctime** moves to *now* — you cannot
+set the change time, because it records when the inode last changed, and setting the mtime is itself
+a change to the inode. The birth time `%w` does not move either; on this ext4 filesystem it is
+recorded once at creation and never updated. That is exactly why ctime is the useful field in a
+forensic reading: mtime and atime are attacker-writable with a one-line `touch`, ctime is not, and a
+file whose mtime is older than its ctime has had its timestamps set by hand.
+
+**52.**
+
+```
+$ touch -t 218705170402.30 build/stamped.txt
+$ stat -c '%y' build/stamped.txt
+2187-05-17 04:02:30.000000000 +0000
+
+$ touch -t 2187-05-17 build/bad
+touch: invalid date format ‘2187-05-17’      # status 1
+$ touch -d 'not a date' build/bad2
+touch: invalid date format ‘not a date’      # status 1
+```
+
+`-t` takes digits only, no separators, so an ISO date is not a valid `-t` argument even though it
+looks like a date — the same string is fine after `-d`. `touch -d @0` sets 1970-01-01 00:00:00 UTC
+and `touch -d yesterday` sets this time on the previous day.
+
+For a script on someone else's machine: `@seconds`. It has no locale, no timezone and no ambiguity
+about `05/06`, and it is the only one of the four whose meaning cannot change under `LC_TIME` or
+`TZ`. `-t` is next best; the English phrases are convenient at a prompt and a liability in a script.
+
 ## Notes for the authoring/tutor agent
 
 - Exercises 9 and 10 must be run in that order. Doing 10 first spoils the distinction.

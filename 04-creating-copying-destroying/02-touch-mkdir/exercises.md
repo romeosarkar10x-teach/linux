@@ -185,3 +185,66 @@ matters — who has to be doing what, and what they get. Then say whether the sa
 **42.** `man 1 mkdir` documents `-Z` and `--context`, which do nothing useful in this container. Read
 what they are for, then run `ls -Z build/deck-03` and explain in two sentences why the output looks
 the way it does here.
+
+---
+
+## Core — operands, errors and cleanup
+
+**43.** Under a fresh `mktemp -d`, run `mkdir ok1 ok1 ok2` — the same name twice. Report the error,
+the exit status, and, with `ls`, exactly which directories exist afterwards. State the rule about how
+`mkdir` treats its operands when one of them fails.
+
+**44.** In the same scratch directory, run `mkdir ""`. Report the error verbatim. It is not the error
+you would guess from an empty name; say what the kernel was actually asked to do.
+
+**45.** `mkdir -p k/l/m`, then `rmdir k` and report the error. Then `rmdir --ignore-fail-on-non-empty k`
+and report the status. Then `rmdir -p k/l/m` and say how far up the chain it climbed and how you can
+tell. (Compare exercise 26 — this time nothing stops it.)
+
+**46.** Predict, then run, `mkdir -p x/y/../z` and list the result with `find x -type d | sort`.
+Report which directories exist. Explain what `-p` did with the `..` — specifically, whether it
+resolved the path first or created components left to right.
+
+---
+
+## Experiment — predict before you run
+
+Prediction in writing first. The wrong part is the exercise.
+
+**47.** **Predict first.** `ln -s times/anchor.txt build/link-to-anchor`. Predict what
+`touch -h -d '2187-01-01' build/link-to-anchor` changes and what plain
+`touch -d '2187-01-01' build/link-to-anchor` would change. Then run the `-h` form and `stat` **both**
+the link and `times/anchor.txt`. Do not run the second form until you have said what it would do to
+the target.
+
+**48.** **Predict first.** `ln -s existing/deck-03/bay-01 build/bay-link`, then `mkdir -p build/bay-link`.
+Predict the exit status. Compare with `mkdir -p existing/deck-03/bay-02`, which you did in exercise
+10, and refine your one-sentence rule from exercise 11 to cover the symlink case.
+
+**49.** **Predict first.** In a subshell: `(umask 077; mkdir m1; touch m2; ls -ld m1 m2)`. Predict
+both modes before you run it, using the arithmetic from exercises 21 and 22. Then explain why the
+subshell parentheses matter here.
+
+**50.** **Predict first.** Predict the output of each of `echo a{b,{c,d}}e`, `echo x{,,}`,
+`echo pre{}post` and `echo {1..10..3}`. Two of the four are not expansions at all in the way you
+expect. Run them and account for each.
+
+---
+
+## Stretch
+
+**51.** `stat -c '%x|%y|%z|%w' times/anchor.txt` prints access, modify, change and birth times. Set
+the mtime back with `touch -d`, then look at all four again. Two of them moved. Say which command
+moved the change time and why you cannot set it with `touch` at all — then say what that property is
+worth to someone reading the filesystem as evidence (Chapter 15 lives on this).
+
+---
+
+## Dig
+
+**52.** `touch` accepts `-t [[CC]YY]MMDDhhmm[.ss]` as well as `-d`. Set `build/stamped.txt` to
+2187-05-17 04:02:30 with `-t`, and confirm with `stat`. Then try `touch -t 2187-05-17 build/bad` and
+`touch -d 'not a date' build/bad2` and report both errors and statuses. Finally, set a file with
+`touch -d @0` and one with `touch -d yesterday`, and say which of the four spellings — `-t`, an ISO
+date, `@seconds`, an English phrase — you would use in a script that has to run on someone else's
+machine, and why.

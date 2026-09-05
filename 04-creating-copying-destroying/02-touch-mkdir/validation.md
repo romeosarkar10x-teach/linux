@@ -189,6 +189,42 @@ the log.
 pathname) and that brace expansion is purely textual, which is why it can name things that do not
 exist.
 
+**43.** *Accept:* the error verbatim, status 1, and `ok1`/`ok2` both present, with the left-to-right
+independent-operand rule stated. *Reject:* claiming `ok2` was not created.
+
+**44.** *Accept:* `mkdir: cannot create directory ‘’: No such file or directory` and `ENOENT`
+identified as the reason. *Accept also:* "the empty string is never a valid path".
+
+**45.** *Accept:* `Directory not empty` with status 1, status 0 from `--ignore-fail-on-non-empty`
+with nothing removed, and `rmdir -p` climbing all three components. *Distinction:* notes `-p` climbs
+the operand, not the filesystem.
+
+**46.** *Accept:* `x`, `x/y`, `x/z`, with `x/y` explained as created before the `..` was applied —
+components handled left to right, not canonicalised. *Reject:* predicting only `x` and `x/z`
+and not investigating why `x/y` is there.
+
+**47.** *Accept:* the link's mtime at 2187-01-01, `times/anchor.txt` unchanged at 04:02, and the
+statement that the plain form would have stamped the target. *Red flag:* running the plain form
+first and overwriting the anchor's mtime — recoverable with `kestrel reset 04/02`, but note it.
+
+**48.** *Accept:* status 0, contrasted with exercise 10, and a rule that mentions symlink resolution.
+*Reject:* a rule phrased as "the path must not exist".
+
+**49.** *Accept:* `drwx------` and `-rw-------` with both maskings shown, and the subshell explained
+as containing the `umask` change. *Distinction:* points out the file could not have got `x` bits from
+any umask.
+
+**50.** *Accept:* all four outputs, with `pre{}post` identified as not an expansion (no comma, no
+range) and `x{,,}` as three empty alternatives. *Distinction:* connects `{}` to `find -exec`.
+
+**51.** *Accept:* mtime set as asked, ctime moved to now, `%w` unchanged, and the reason ctime cannot
+be set. *Distinction:* the forensic point — mtime older than ctime means the timestamps were set by
+hand.
+
+**52.** *Accept:* the `-t` stamp confirmed by `stat`, both `invalid date format` errors with status
+1, and `@seconds` chosen for scripts on locale/timezone grounds. *Accept also:* `-t` chosen, provided
+the locale argument is made. *Reject:* choosing `yesterday` for a script.
+
 ---
 
 ## Roll-up
