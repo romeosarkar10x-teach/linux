@@ -261,6 +261,119 @@ just now. `cp -a` sets atime and mtime explicitly; ctime is not settable by any 
 preserving it would mean lying about when this new inode came into existence, which the kernel does
 not offer. (The birth time `%w` differs for the same reason.)
 
+## Added exercises 47–52
+
+**47.** `cp --parents source/readings/2187-05-17.txt scratch/`:
+
+```
+scratch/source
+scratch/source/readings
+scratch/source/readings/2187-05-17.txt
+```
+
+`--parents` recreates the source path, directory by directory, under the destination — the
+destination must already exist and must be a directory. With an absolute source path the leading `/`
+is dropped and the rest is appended, so `cp --parents /etc/hosts scratch/` produces
+`scratch/etc/hosts`. This is how `cp` is used to pull a scattered subset of a tree out while keeping
+the structure that explains what the files are.
+
+**48.**
+
+```
+cp -t scratch source/handover.txt source/faults/open.txt
+mv -t scratch/sub scratch/a scratch/b
+```
+
+The option exists because of `xargs`. `find … -print0 | xargs -0 cp …` appends the filenames to the
+end of the command, which is exactly where `cp`'s destination has to go in the normal form — so
+without `-t` there is no way to write the pipeline at all. The failure mode it prevents is the
+serious one: if the last filename is missing or the list is empty, the normal form silently treats
+one of the *sources* as the destination and copies files over each other. With `-t` the destination
+is fixed by the option and can never be taken from the argument list.
+
+**49.**
+
+```
+$ mkdir -p A/x B/y; mv A B          # status 0 — A becomes B/A
+$ mv -T A B                         # B non-empty
+mv: cannot overwrite 'B': Directory not empty      # status 1
+$ mv -T A B                         # B empty
+                                    # status 0 — A's contents are now B/x
+```
+
+Plain `mv` sees that the destination exists and is a directory, so it moves the source *into* it —
+the same rule that makes `mv file dir/` work. `-T` says "treat the destination as the thing to
+become, not as a container", and it refuses to overwrite a non-empty directory: replacing a directory
+would mean deleting everything under it, which `mv` will not do implicitly. On an empty `B` it
+succeeds and `B` is now what `A` was.
+
+**50.**
+
+```
+$ mv A A/x
+mv: cannot move 'A' to a subdirectory of itself, 'A/x/A'
+```
+
+Status 1. `mv` does not walk the tree: it compares the paths. If the destination path has the source
+path as a prefix at a component boundary, the move is a subdirectory-of-itself and is rejected
+before anything is renamed. (The kernel's `rename` would also fail with `EINVAL` for the same reason;
+`mv` checks first so it can give a useful message.)
+
+**51.**
+
+```
+$ cp -rl source scratch/cl
+$ stat -c '%i %n' source/handover.txt scratch/cl/handover.txt
+4109230 source/handover.txt
+4109230 scratch/cl/handover.txt
+```
+
+`-l` hard-links the files instead of copying them: same inode, no data written, and the directories
+themselves are new. `cp -s` makes symlinks, and it is the one with the path restriction:
+
+```
+$ cp -s source/handover.txt scratch/sl.txt
+cp: scratch/sl.txt: can make relative symbolic links only in current directory
+$ echo $?
+1
+```
+
+A relative source is copied verbatim into the link, so a link created *elsewhere* would point at a
+path relative to the wrong directory and dangle — `cp` refuses rather than make one. `cp -s
+source/handover.txt sl.txt` (destination in the current directory) succeeds and gives
+`sl.txt -> source/handover.txt`; an absolute source works anywhere and gives an absolute target.
+
+Uses: `cp -rl` is how a cheap snapshot is taken — an entire tree of names for the cost of the
+directory entries, so long as nothing edits a file *in place* (an editor that writes-and-renames
+breaks the link and leaves the snapshot intact, which is the point; an editor that truncates and
+rewrites changes both names at once, which is the trap). `cp -s` gives you a tree that is obviously
+not the original: every entry announces where the real file is, so nobody mistakes the copy for
+data they can edit.
+
+**52.**
+
+```
+$ cp --reflink=always source/handover.txt scratch/rl.txt
+cp: failed to clone 'scratch/rl.txt' from 'source/handover.txt': Operation not supported
+$ echo $?
+1
+$ cp --reflink=auto source/handover.txt scratch/rl2.txt
+$ echo $?
+0
+```
+
+A reflink is a copy-on-write clone: the new file gets its own inode and its own name but points at
+the *same data blocks*, and blocks are duplicated only when one of the two files is written to. It
+needs filesystem support — btrfs, XFS with reflinks enabled, ZFS — and the layers under `/labs` here
+(ext4 under an overlay) provide none, so the `FICLONE` ioctl returns `EOPNOTSUPP`.
+
+`auto` caught that and fell back to an ordinary full-data copy, silently and successfully. That is
+right for `cp`, whose contract is "the destination has these contents" — how the bytes got there is
+an optimisation. It would be wrong for a backup or snapshot tool whose contract is "this costs no
+space": there the silent fallback turns a promised deduplicated snapshot into a full second copy, and
+you find out when the disk fills. Same fallback, opposite correctness, because the promise is
+different.
+
 ## Notes for the authoring/tutor agent
 
 - Exercises 6 and 8 both write into `dest`. The instruction to reset between them is not optional;

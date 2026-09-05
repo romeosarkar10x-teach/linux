@@ -198,3 +198,48 @@ version of a file that something else may be reading.
 **46.** `cp -a` claims to preserve everything. Test the claim on the one piece of metadata that
 cannot be preserved: create a file, note all four times from `stat`, `cp -a` it, and `stat` the copy.
 Which of the four differs, and what would preserving it have meant?
+
+---
+
+## Core — naming the destination
+
+**47.** Copy `source/readings/2187-05-17.txt` into `scratch/` so that the *whole path* is recreated
+underneath it — `scratch/source/readings/2187-05-17.txt` — with one `cp` and no `mkdir`. Find the
+option in `man cp`. Then say what it does with a source path that starts with `/`.
+
+**48.** `cp` and `mv` both take a `-t` option that names the destination *first*. Use it to copy
+`source/handover.txt` and `source/faults/open.txt` into `scratch/` in one command, and to move two
+files you create in `scratch/` into a subdirectory of it. Then say why an option that only reorders
+the arguments needs to exist at all — the answer involves `find … | xargs`, and one sentence about
+what happens when the last filename is missing.
+
+---
+
+## Experiment — predict before you run
+
+**49.** **Predict first.** In a `mktemp -d`: `mkdir -p A/x B/y`, then `mv A B`. Predict the exit
+status and where `A` ends up. Then reset and predict `mv -T A B` with the same two trees, and again
+with `B` empty. Report all three results. State in one sentence what `-T` refuses to do.
+
+**50.** **Predict first.** `mkdir -p A/x`, then `mv A A/x`. Predict the message before you run it.
+Then say how `mv` can know this is illegal without walking the whole tree.
+
+---
+
+## Stretch
+
+**51.** `cp -rl` and `cp -s` do not copy data at all. Run both on `source/` into `scratch/`, then
+check with `stat -c '%i %n'` and `ls -l` what you actually got. One of the two refuses a relative
+source path when the destination is not in your current directory — find out which, and report the
+error. Then give one real use for
+each: a snapshot you want to be cheap, and a tree you want to be obviously not-the-original.
+
+---
+
+## Dig
+
+**52.** `cp --reflink=always source/handover.txt scratch/rl.txt` fails in this container. Report the
+error verbatim, then run the same copy with `--reflink=auto` and report its exit status. Explain what
+a reflink is, why the filesystem under `/labs` here cannot provide one, and what `auto` did instead —
+including why a silent fallback is the right default for `cp` and would be the wrong default for a
+backup tool that promises deduplication.

@@ -190,6 +190,30 @@ settable by any interface.
 **Distinction.** Ex 45 names the idiom (atomic replace) and states its precondition — the temporary
 file must be in the same directory, because `rename()` is only atomic within a filesystem.
 
+**47.** *Accept:* `cp --parents`, the three-level result under `scratch/`, and the leading-`/` rule
+for absolute sources. *Reject:* any answer that used `mkdir -p` first.
+
+**48.** *Accept:* both `-t` commands, and the `xargs` argument-order reason. *Distinction:* names the
+failure mode — without `-t`, a short or empty list makes `cp` treat a source as the destination.
+
+**49.** *Accept:* status 0 with `A` inside `B`; `mv: cannot overwrite 'B': Directory not empty` with
+status 1 for `-T` on a non-empty `B`; status 0 on an empty `B`. *Reject:* predicting `-T` overwrites
+the non-empty directory and not correcting it.
+
+**50.** *Accept:* `mv: cannot move 'A' to a subdirectory of itself, 'A/x/A'`, status 1, and the
+path-prefix check named. *Distinction:* mentions `rename(2)` returning `EINVAL`.
+
+**51.** *Accept:* identical inodes for `cp -rl`; the `cp -s` message
+`can make relative symbolic links only in current directory` with status 1, and the working form
+(destination in the current directory, or an absolute source). *Accept also:* the student found the
+restriction is about the *destination's* directory, not simply "relative is forbidden".
+*Distinction:* the snapshot-versus-in-place-edit point for `-l`.
+
+**52.** *Accept:* `failed to clone … Operation not supported` with status 1, `--reflink=auto` exiting
+0, and a correct description of copy-on-write sharing. *Distinction:* the closing argument — silent
+fallback is right for `cp` and wrong for a tool that promises deduplication. *Reject:* describing a
+reflink as a hard link or a symlink.
+
 ---
 
 ## Roll-up
