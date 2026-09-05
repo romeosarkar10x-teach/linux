@@ -174,3 +174,179 @@ on.
 
 *Done looks like:* the option named, the failure, and the surviving expansion. Say in one sentence
 why that last fact makes the option usable in practice.
+
+---
+
+## Core — assignment is fussier than it looks
+
+**21.** `deck = 3` fails. `deck= 3` fails differently. `deck=3` works. Run all three and quote each
+error exactly.
+
+*Done looks like:* three results and one sentence each on what the shell thought you meant.
+
+**22.** Assign a value containing a space without quotes. Quote the error, then fix it two ways.
+
+*Done looks like:* the error and both fixes.
+
+**23.** Assign a value containing a literal `$`. Do it so the dollar survives, and show a way that
+loses it.
+
+*Done looks like:* both attempts and the rule.
+
+**24.** Assign the output of a command to a variable, then print it. Then assign the output of a
+command that fails, and print both the variable and `$?`.
+
+*Done looks like:* both cases, with the status of the failing one recorded.
+
+**25.** `deck3=x` and `3deck=x`. One works. Say what the naming rule is, from evidence.
+
+*Done looks like:* both results and the rule.
+
+**26.** Set a variable whose name is lowercase and one whose name is uppercase, holding the same
+value. The shell treats them identically. Say why the convention exists anyway.
+
+*Done looks like:* the demonstration and one sentence about convention versus rule.
+
+**27.** Assign to a variable twice on one line, with a command between: `a=1 b=2 deck-report "$a"`.
+What does the command see, and does `a` survive afterwards?
+
+*Done looks like:* the report, the after-check, and the rule about per-command assignments.
+
+---
+
+## Core — the difference between empty and unset, again
+
+**28.** Build a table with four rows — unset, empty, one space, a value — and four columns: the
+plain `$x`, `${x:-D}`, `${x-D}`, and `${#x}`. Fill it in from evidence.
+
+*Done looks like:* sixteen filled cells.
+
+**29.** From that table, state the difference between `:-` and `-` in one sentence.
+
+*Done looks like:* one correct sentence.
+
+**30.** `deck-config` has one setting that is blank and one that is absent. Write the expansion that
+treats those two cases *differently*, and the one that treats them the same.
+
+*Done looks like:* both expansions and which case each is for.
+
+**31.** Someone writes `if [ -z "$THRESHOLD" ]` to catch a missing setting. Say which of the two
+cases that catches and which it misses, and what it would have to be to catch only the missing one.
+
+*Done looks like:* the analysis and the corrected test.
+
+**32.** Use `${x:?message}` on an unset variable inside a subshell, so it does not kill your session.
+Record the message and the status.
+
+*Done looks like:* the message quoted and the number.
+
+---
+
+## Core — the variables the shell sets for you
+
+**33.** Print `$HOME`, `$PWD`, `$OLDPWD`, `$USER`, `$PATH`, `$PS1`, `$$` and `$?`, one per line, with
+the name next to the value.
+
+*Done looks like:* eight labelled lines.
+
+**34.** Change directory twice and re-read `$PWD` and `$OLDPWD`. Who is setting those?
+
+*Done looks like:* the readings and the answer in one word.
+
+**35.** Run a command that fails, then immediately `echo $?`, then `echo $?` again. Two different
+numbers. Explain the second.
+
+*Done looks like:* both numbers and the explanation.
+
+**36.** Which of the variables in exercise 33 would still be correct if you sent your answers file to
+a colleague and they read it tomorrow? Sort them into stable and per-session.
+
+*Done looks like:* two lists.
+
+**37.** Set `PS1` to something ugly and then restore it. Say why an accidental `PS1=` in a startup
+file is confusing rather than fatal.
+
+*Done looks like:* both states and one sentence.
+
+---
+
+## Experiment — predict before you run
+
+**38.** **Predict first.** `x=1; x=$x$x; echo $x`. Predict the output.
+
+*Done looks like:* the prediction and the run.
+
+**39.** **Predict first.** `echo "${notset}"` versus `echo "$notset"` versus `echo ${notset}text`.
+Predict all three, then run.
+
+*Done looks like:* three predictions and three outputs.
+
+**40.** **Predict first.** `x=hello; echo "$xworld"` and `echo "${x}world"`. Predict both.
+
+*Done looks like:* the predictions and the rule about braces.
+
+**41.** **Predict first.** In a subshell — `( x=inner; echo "$x" )` — then `echo "$x"` outside.
+Predict both.
+
+*Done looks like:* the predictions and one sentence on scope.
+
+**42.** **Predict first.** `unset PATH; ls`. Predict the failure, then do it in a throwaway shell and
+recover.
+
+*Done looks like:* the error quoted and the recovery. Do not do this in a shell you care about.
+
+---
+
+## Stretch
+
+**43.** Rewrite `report.sh` so that every value it prints is either set deliberately or fails loudly.
+Do not use any construct later than this lesson.
+
+*Done looks like:* the rewritten script and a run that fails cleanly with one value removed.
+
+**44.** Write a three-line note explaining to a colleague why `${VAR:-default}` in a script is
+sometimes exactly right and sometimes a way to ship a bug quietly.
+
+*Done looks like:* three lines with both cases.
+
+**45.** Take `deck-config` and write the expansions you would use to load its three settings into a
+script, choosing a different form for each and justifying each choice.
+
+*Done looks like:* three lines of shell and three justifications.
+
+**46.** Explain, in two sentences, why the shell has no types and what that costs you.
+
+*Done looks like:* two sentences that mention strings.
+
+---
+
+## Dig
+
+**47.** Find the expansion that removes a prefix from a variable's value, and use it to turn
+`/labs/01-shell-and-terminal/04-variables` into `01-shell-and-terminal/04-variables`.
+
+*Done looks like:* the expansion and the output.
+
+**48.** Find the expansion that gives a substring, and take the first three characters of `$PATH`.
+
+*Done looks like:* the expansion and the output.
+
+**49.** `readonly` exists. Make a variable readonly, try to change it, quote the error, then find out
+whether you can unset it.
+
+*Done looks like:* both errors and the answer.
+
+**50.** Find out what `declare -p` prints for a variable you have set, and what the letters in its
+output mean.
+
+*Done looks like:* the output and the letters explained.
+
+**51.** Find out whether the shell has a limit on how long a variable's value can be, and how you
+would test that claim without hanging your session.
+
+*Done looks like:* an answer and a safe test.
+
+**52.** Find out what happens to your variables when you run `exec bash`, and explain the result
+using 01/02's exercise 39.
+
+*Done looks like:* the experiment and the explanation.

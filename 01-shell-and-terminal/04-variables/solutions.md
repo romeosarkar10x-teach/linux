@@ -230,3 +230,248 @@ using `set -u` could have optional settings at all.
 Note for the probe: it does catch a misspelled variable *read*, which is most of its value. It
 cannot catch a misspelled variable *write* — `retries=3` next to `${reties}` is caught; `reties=3`
 next to `${reties}` is not.
+
+---
+
+## Added exercises 21–52
+
+Only the load-bearing ones are worked here. The rest are runs whose output speaks for itself.
+
+### 21 — three ways to write an assignment
+```
+$ deck = 3
+bash: deck: command not found
+$ echo $?
+127
+$ deck= 3
+bash: 3: command not found
+$ echo $?
+127
+$ deck=3
+$
+```
+Three different readings of the same three characters. `deck = 3` is a command called `deck` with
+arguments `=` and `3`. `deck= 3` is a per-command assignment `deck=` (empty) followed by the command
+`3`. Only `deck=3`, with no space on either side of the `=`, is an assignment. Both failures are
+status 127 — "not found" — which is the giveaway: the shell was looking for a program, not
+complaining about syntax.
+
+### 23 — keeping a literal dollar
+```
+$ msg='cost is $5'
+$ echo "$msg"
+cost is $5
+$ msg="cost is $5"
+$ echo "$msg"
+cost is
+```
+Single quotes suppress expansion. Inside double quotes, `$5` is the fifth positional parameter,
+which is unset here, so it expands to nothing. Backslash also works: `msg="cost is \$5"`.
+
+### 24 — command substitution and status
+```
+$ names=$(cat sample-names.txt)
+$ echo "$names"
+...
+$ bad=$(cat no-such-file)
+cat: no-such-file: No such file or directory
+$ echo "[$bad] $?"
+[] 0
+```
+The trap: `$?` after the *echo* is echo's status. Check `$?` on the line immediately after the
+assignment — there it is `1`, cat's status. A command substitution that fails still assigns; it
+assigns the empty string, silently, unless you look.
+
+### 25 — what a name may be
+`deck3=x` assigns. `3deck=x` gives `bash: 3deck=x: command not found` — the shell refused to read it
+as an assignment, so it tried to run it. Names are letters, digits and underscore, and may not start
+with a digit.
+
+### 26 — case is convention, not rule
+```
+$ deck=3; DECK=4; echo "$deck $DECK"
+3 4
+```
+Two distinct variables; the shell applies no rule to case. The convention — uppercase for exported
+environment variables, lowercase for your own — exists so that a reader can tell at a glance whether
+a name is likely to be visible to child processes. It buys you nothing mechanically and everything in
+readability.
+
+### 27 — per-command assignment
+```
+$ a=1 b=2 deck-report "$a"
+$ echo "after=[$a]"
+after=[]
+```
+Two facts at once. The assignments are in effect *for that command only*: `a` is unset afterwards.
+And `"$a"` in the argument list was expanded *before* the assignment took effect, so the report
+received an empty argument, not `1`. Per-command assignments configure the command; they do not
+build up a value for the rest of the line.
+
+### 28–29 — the table
+With `x` unset, then `x=`, then `x=' '`, then `x=hello`:
+
+| state | `$x` | `${x:-D}` | `${x-D}` | `${#x}` |
+|---|---|---|---|---|
+| unset | (nothing) | `D` | `D` | `0` |
+| empty | (nothing) | `D` | (nothing) | `0` |
+| one space | ` ` | ` ` | ` ` | `1` |
+| `hello` | `hello` | `hello` | `hello` | `5` |
+
+The sentence: `:-` substitutes the default when the variable is unset *or* empty; `-` substitutes it
+only when the variable is unset. The empty row is the only one where they disagree, and it is the row
+that matters, because an empty value is what a configuration file with a blank setting produces.
+
+### 30–31 — `deck-config`'s two kinds of missing
+`ALERT_THRESHOLD=` is blank; `RETENTION_DAYS` is absent. `${ALERT_THRESHOLD-60}` treats them
+differently — blank stays blank, absent becomes 60. `${ALERT_THRESHOLD:-60}` treats them the same.
+
+`[ -z "$THRESHOLD" ]` is true for both, so it catches blank and absent alike and cannot tell them
+apart. To catch only the absent one you need the shell to distinguish them for you:
+`[ -z "${THRESHOLD+set}" ]` — the `+` form expands to `set` if the variable exists at all, blank or
+not. The comment in `deck-config` says blank means "use the built-in default", so here the sloppy
+test happens to do the right thing; on a file where blank meant "alert on everything", it would not.
+
+### 32 — the loud form
+```
+$ ( echo "${nope:?missing setting}" )
+bash: nope: missing setting
+$ echo $?
+1
+```
+Status 1, and the subshell died at that point — the `echo` never ran. In a script, that is the whole
+point: stop where the setting is missing rather than three steps later with an empty string.
+
+### 34–35 — who sets what
+`$PWD` and `$OLDPWD` are set by the shell, by `cd` itself. Nothing you ran sets them; that is why
+they are already correct in a shell you have never configured.
+
+```
+$ false
+$ echo $?
+1
+$ echo $?
+0
+```
+The second `0` is the status of the first `echo`, which succeeded. `$?` is always the status of the
+*previous* command, and reading it is itself a command. Capture it into a variable on the very next
+line if you need it twice.
+
+### 36 — stable versus per-session
+Stable across machines and days: `$HOME`, `$USER`, and — for a given account — `$PATH` and `$PS1`,
+which come from startup files. Per-session: `$PWD`, `$OLDPWD`, `$$` (the shell's process id) and
+`$?`. Pasting `$$` into a report and expecting a colleague to see the same number is the classic
+version of this mistake.
+
+### 37 — the prompt is a variable
+`PS1=uglyprompt$ ` changes the prompt immediately; restoring the old value restores it. An accidental
+`PS1=` in a startup file gives you a shell with no prompt at all — it looks hung or broken, but the
+shell is working perfectly and will run anything you type. Confusing, not fatal.
+
+### 38 — self-reference
+`11`. The right-hand side is expanded fully before the assignment happens, so both `$x` are the old
+value. There is no moment where the variable is half-updated.
+
+### 40 — what braces are for
+```
+$ x=hello
+$ echo "$xworld"
+
+$ echo "${x}world"
+helloworld
+```
+Without braces the shell reads the longest valid name it can, which is `xworld` — a different,
+unset variable. Braces say where the name ends. This is the one case where they are not optional.
+
+### 41 — subshell scope
+`inner` then the outer value. A subshell gets a copy of the parent's variables; changes to the copy
+are discarded when it exits. This is the same mechanism as 01/02's parent-and-child shells, seen from
+the variable side.
+
+### 42 — the shell without a `PATH`
+```
+$ ( PATH=; ls )
+bash: ls: No such file or directory
+```
+Not "command not found" — with an empty `PATH` there is nowhere to look, and the shell's message is
+about the file. Recovery inside a broken shell is `/bin/ls` by absolute path, or reassigning `PATH`,
+which works because assignment is a builtin and needs no `PATH` to run. Doing it in a subshell means
+there is nothing to recover.
+
+### 43 — a report that fails loudly
+```sh
+#!/bin/bash
+: "${DECK:?DECK not set}"
+: "${SAMPLE_INTERVAL:?SAMPLE_INTERVAL not set}"
+echo "deck $DECK sampled every ${SAMPLE_INTERVAL}s"
+```
+`:` is the do-nothing builtin; its only job here is to be a place to put the expansion. Remove one
+setting and the script stops on that line with a named message instead of printing a sentence with a
+hole in it.
+
+### 44 — when a default is a bug
+`${VAR:-default}` is right when the default is genuinely correct and the setting genuinely optional —
+a retry count, a page width. It ships a bug quietly when the default is merely *plausible*: a missing
+alert threshold silently becoming 60 means the monitoring runs, reports nothing wrong, and looks
+healthy. The rule of thumb: if being wrong here would be invisible, fail instead of defaulting.
+
+### 45 — three settings, three forms
+```sh
+interval=${SAMPLE_INTERVAL:-360}      # optional, a real default exists
+threshold=${ALERT_THRESHOLD-}          # blank is meaningful; keep it distinct from absent
+retention=${RETENTION_DAYS:?not set}   # no safe default; refuse to guess
+```
+
+### 46 — no types
+Every variable holds a string; `deck=3` and `deck=three` are the same kind of thing to the shell. The
+cost is that arithmetic, comparison and validation are all things you must ask for explicitly, and
+nothing stops a number-shaped variable from holding a word until the moment something tries to use it.
+
+### 47–48 — the two Dig expansions
+```
+$ p=/labs/01-shell-and-terminal/04-variables
+$ echo "${p#/labs/}"
+01-shell-and-terminal/04-variables
+$ echo "${PATH:0:3}"
+/op
+```
+`${var#prefix}` removes a matching prefix; `${var:offset:length}` takes a substring. Both are in
+`man bash` under "Parameter Expansion", which is where a probe should say they found them.
+
+### 49 — `readonly`
+```
+$ bash -c 'readonly r=1; r=2; echo reached'
+bash: r: readonly variable
+$ echo $?
+1
+$ ( readonly r=1; unset r )
+bash: unset: r: cannot unset: readonly variable
+```
+Note what did *not* happen: `reached` never printed. In a non-interactive shell, assigning to a
+readonly variable is fatal — the shell exits. And no, you cannot unset it; the only way out is to
+end the shell.
+
+### 50 — `declare -p`
+```
+$ deck=3; declare -p deck
+declare -- deck="3"
+$ declare -p HOME
+declare -x HOME="/home/cadet"
+```
+The letters are attribute flags. `--` means no attributes; `-x` means exported, which is exactly the
+distinction between "a variable in this shell" and "a variable children will inherit". `declare -p`
+with no name prints every variable, which is a better answer to "what is actually set" than `echo`
+one at a time.
+
+### 52 — `exec bash`
+```
+$ x=abc
+$ ( export x; exec bash -c 'echo exported=[$x]' )
+exported=[abc]
+$ ( exec bash -c 'echo plain=[$x]' )
+plain=[]
+```
+`exec` replaces the shell with a new one in the same process. Unexported variables belonged to the
+old shell's memory and are gone; exported ones were in the environment, which survives the replace.
+It is the same parent-and-child rule from 01/02 exercise 39, minus the child — the process is reused,
+but the shell's private state is not.
