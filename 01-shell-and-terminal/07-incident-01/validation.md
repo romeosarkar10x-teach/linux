@@ -172,12 +172,12 @@ Modifying it is not, by itself, a failure. Not noticing that it mattered is.
 | Field | |
 |---|---|
 | **Goal** | Permissions are advisory against the owner; real immutability is elsewhere. |
-| **Expected end state** | Error quoted, e.g. `bash: dorn-bash-history: Permission denied`. Two sentences: the owner (`cadet`, here) can change the mode and then write; root can always write; so a read-only bit is a guard against accident, not against intent. |
+| **Expected end state** | Error quoted, e.g. `bash: dorn-bash-history: Permission denied`. Two sentences: the file is owned by `root` and mode 444 gives nobody write permission, so two things refuse them at once; root can write regardless, and an owner can always `chmod` first — a read-only bit is a guard against accident, not against intent. |
 | **Evidence commands** | `ls -l dorn-bash-history`; check the file is still 444 and unmodified. |
 | **Accept** | Mentioning root, or the owner's ability to `chmod`. Bonus for contrasting with `/course`, which is read-only at the mount. |
 | **Reject** | "Nobody can modify it." |
 | **Red flags** | **The file's mode is no longer 444, or its contents changed.** They demonstrated it by doing it. See the integrity check at the top. |
-| **Probe question** | "Who owns that file, and what can an owner always do?" |
+| **Probe question** | "Who owns that file, and what can an owner always do?" A student who says `cadet` has not looked. |
 
 ### The debrief — required
 | Field | |
