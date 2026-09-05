@@ -274,6 +274,256 @@ reconnaissance handed over for free. This is one of the things a hardened contai
 - Nothing in this lesson touches the sabotage arc. It is the last of Chapter 2's teaching lessons
   before `05-tree-and-stat`; keep the tone technical.
 
+
+---
+
+## Added exercises 25–52
+
+All output below was taken from the running container. Numbers that describe the machine (memory,
+CPU count, uptime) are the **host's** and will differ on another box — the shape of the answer is
+what matters.
+
+**25.**
+```
+$ head -1 /proc/stat
+cpu  406849 7 45132 17658332 3605776 12499 5594 0 0 0
+```
+In order: user, nice, system, idle, iowait, irq, softirq, steal, guest, guest_nice. The unit is
+**USER_HZ** clock ticks — 100 per second on this kernel — not seconds. `getconf CLK_TCK` reports it.
+
+**26.**
+```
+$ grep -c '^cpu[0-9]' /proc/stat
+24
+```
+Twenty-four `cpuN` lines plus the aggregate `cpu` line. It matches `nproc` and
+`/sys/devices/system/cpu/online`, which reads `0-23`.
+
+**27.**
+```
+$ wc -l /proc/filesystems
+33
+```
+`nodev` in the first column means the filesystem is not backed by a block device — `proc`, `sysfs`,
+`tmpfs`, `cgroup2` and the rest are generated or in memory. Entries with a blank first column
+(`ext4`, `xfs`) need something to mount.
+
+**28.**
+```
+$ cat /proc/self/statm
+3653 1232 1001 271 0 735 0
+```
+size, resident, shared, text, lib (always 0 on modern kernels), data, dt (always 0). The unit is
+**pages**, not bytes or kilobytes — multiply by `getconf PAGESIZE` (4096) to get bytes.
+
+**29.**
+```
+$ ls -l /proc/self/cwd /proc/self/root
+/proc/self/cwd  -> /home/cadet
+/proc/self/root -> /
+```
+`cwd` is where the process is standing; `root` is what the process believes `/` to be. They differ
+for a process in a chroot or in its own mount namespace, where `root` points at a subdirectory of
+the real tree. That is also how you would spot such a process from outside.
+
+**30.**
+```
+MemTotal:       31932432 kB
+MemFree:        11584808 kB
+MemAvailable:   15687804 kB
+```
+`MemFree` is memory nobody is using at all; `MemAvailable` adds the cache and buffers the kernel
+would hand back under pressure. Act on `MemAvailable` — a machine with a small `MemFree` and a large
+`MemAvailable` is healthy, and treating `MemFree` as "free memory" is the classic beginner's alarm.
+
+**31.**
+```
+$ cat /proc/uptime
+9032.36 176465.89
+```
+The first is wall-clock seconds since boot; the second is total idle seconds summed **across all
+CPUs**. With 24 CPUs there are up to 24 idle-seconds available per elapsed second, so the second
+number can be many times the first. 176465 / 9032 ≈ 19.5 of 24 CPUs idle on average.
+
+**32.** Three structural differences:
+1. `/proc` is flat at the top — numbered directories plus loose files; `/sys` is a deep tree with
+   almost no files at the top level.
+2. `/sys` is full of symlinks that cross-link the same object into several trees (`class`, `bus`,
+   `devices`); `/proc` barely uses links except inside a process directory.
+3. `/sys` files are almost always one value per file; `/proc` files are frequently whole tables
+   (`meminfo`, `stat`, `cpuinfo`) that need parsing.
+
+**33.**
+```
+$ ls -l /sys/class/net
+eth0 -> ../../devices/virtual/net/eth0
+lo   -> ../../devices/virtual/net/lo
+```
+`/sys/devices` is the real tree — it mirrors how the hardware actually hangs together. `/sys/class`
+is an index into it, grouping by what a thing *is* rather than where it is plugged in.
+
+**34.**
+```
+$ cat /sys/devices/system/cpu/online
+0-23
+```
+A CPU list: comma-separated ranges, inclusive, with `-` for a run. With CPU 3 offline it would read
+`0-2,4-23`. The format appears throughout `/sys` and in `taskset`.
+
+**35.** Any of dozens; `/proc/sys/fs/file-max` (`9223372036854775807`) or a `/sys/class/net/eth0/mtu`
+will do. The documentation route is `Documentation/ABI/` in the kernel source, surfaced as
+`man 5 sysfs` and `man 5 proc` for the common ones — and for `/proc/sys` specifically, `sysctl -a`
+plus `man 5 proc`. The honest answer is that a bare number in `/sys` is not self-describing and you
+must look it up.
+
+**36.**
+```
+$ ls /sys/fs/cgroup | head -5
+cgroup.controllers  cgroup.events  cgroup.freeze  cgroup.kill  cgroup.max.depth
+```
+It describes resource *groups* — how much CPU, memory and I/O a set of processes may use, and which
+processes are in the set. It is the mechanism containers are built out of. Chapter 9 goes further.
+
+**37.**
+```
+$ cat /proc/self/cgroup
+0::/
+```
+The prediction most people write is a long docker path. What you get is `/` — the container has its
+own cgroup namespace, so it sees itself at the root of the hierarchy. The answer therefore tells you
+about the *container's view*, not the host's; it is evidence of namespacing rather than of layout.
+
+**38.** `/proc/uptime`'s first number changes between two runs — it is generated at read time.
+`/proc/version` does not; it is constant for the life of the booted kernel. Both are read the same
+way, which is the point: the file interface says nothing about whether the content is static.
+
+**39.**
+```
+$ wc -c /proc/meminfo
+1674 /proc/meminfo
+$ ls -l /proc/meminfo
+-r--r--r-- 1 root root 0 ... /proc/meminfo
+```
+`ls` asks `stat`, which reports the *declared* size — zero, because nothing is stored. `wc` reads
+until EOF and counts what arrived. In an ordinary filesystem these agree; in procfs the content does
+not exist until you ask for it.
+
+**40.**
+```
+$ cp /proc/cpuinfo ~/cpuinfo.txt
+$ ls -l ~/cpuinfo.txt
+-r--r--r-- 1 cadet cadet 46052 ... cpuinfo.txt
+```
+It works, and the copy has a real size — 46052 bytes here, from a file `ls` called zero. `cp` read
+the generated content and wrote it into a real file. Note the copy also inherited mode 444.
+
+**41.** No. The copy is an ordinary file and is frozen at the instant it was read. That is the
+conclusion: `/proc` files are not files with contents, they are a **read interface to kernel state**,
+and copying one converts a live view into a dead snapshot. Useful when you want the snapshot;
+misleading when you forget you took one.
+
+**42.**
+```
+$ realpath /proc/self
+/proc/67463
+$ realpath /proc/self
+/proc/67464
+```
+`self` resolves to the PID of the process doing the reading, and each `realpath` is a new process
+with a new PID. Two runs, two answers, and neither is wrong — the link has no fixed target.
+
+**43.** The size column is meaningless (0) and the times are the moment you looked. The **mode** and
+the **owner** are the meaningful ones: they say who is allowed to inspect the process, which is how
+`/proc` enforces that you cannot read another user's `environ` or `fd`. Link count is also real for
+directories.
+
+**44.**
+```
+$ grep -E '^(Uid|Gid)' /proc/<pid>/status
+Uid:	1005	1005	1005	1005
+Gid:	1008	1008	1008	1008
+```
+Four values each: real, effective, saved-set, filesystem. PID 1 reports the *same* numbers here —
+PID 1 is `docker-init` running `sleep infinity`, started as the same unprivileged account you are,
+not as uid 0 as init would be on the Ubuntu VM. The exact numbers depend on how the image was
+launched; read your own rather than copying these.
+
+**45.** `/proc/<pid>/stat` field 3 is the state character (`S` for a sleeping `sleep`, `R` for
+something running) and field 4 is the parent PID; both match `State:` and `PPid:` in `status`. Two
+files carry the same facts because `stat` is the old, fixed, whitespace-separated form that tools
+parse, and `status` is the human-readable form with labels that can gain fields without breaking
+anyone. Parsing `stat` is fragile anyway — the command name in field 2 can contain spaces and
+parentheses.
+
+**46.** Two lines to the effect of: every question in this lesson — how much memory, which CPUs,
+what is process 4127 doing, what files does it have open — was answered with `cat`, `ls` and a
+symlink, using tools written before any of those subsystems existed. Had the kernel exposed each
+one through a dedicated system call, every one of those questions would need its own program, and
+you could not have answered a new one with tools you already had.
+
+**47.** From the first line of `/proc/self/mountinfo`:
+```
+- overlay overlay rw,lowerdir=/var/lib/docker/overlay2/l/WSRA7QQ...,upperdir=/var/lib/docker/overlay2/1103b2a.../diff
+```
+`lowerdir` and `upperdir` are paths on the **host**, inside `/var/lib/docker`. That leaks that this
+is Docker, the storage driver in use, and the host's layer identifiers — enough to confirm the
+sandbox and to fingerprint the host's configuration. `/proc/mounts` shows the same mount without
+those options.
+
+**48.**
+```
+$ ls -l /proc/config.gz
+-r--r--r-- 1 root root 69631 ... /proc/config.gz
+```
+It is gzip-compressed, so `zcat /proc/config.gz` reads it (`gunzip -c` equally). Note this one *does*
+report a size, unlike most of `/proc`. It exists only when the kernel was built with
+`CONFIG_IKCONFIG_PROC`.
+
+**49.**
+```
+$ grep 'Max open files' /proc/self/limits
+Max open files            1024                 524288               files
+$ cat /proc/sys/fs/file-max
+9223372036854775807
+```
+The limits file is **per process**: this process may hold 1024 descriptors, and may raise that to
+524288 itself. `file-max` is the **system-wide** ceiling on open files across every process at once.
+One is a quota, the other is a capacity — and here the system-wide one is effectively unlimited.
+
+**50.**
+```
+$ cat -v /proc/self/environ
+HOSTNAME=kestrel^@PWD=/home/cadet^@HOME=/home/cadet^@LANG=C.UTF-8^@...
+```
+NUL-separated, which is why `cat` alone appears to run it all together — `tr '\0' '\n'` makes it
+readable. Reading another user's environment would be a problem because environments routinely carry
+tokens, passwords and connection strings passed in at start-up. What stops you is the file's
+ownership and mode 400: `/proc/<pid>/environ` is readable only by the process's own user. On this
+station PID 1 belongs to the same account you do, so it is readable — that is a property of how the
+container was launched, not a general rule.
+
+**51.** They are not. The mechanism is the **PID namespace**: the container gets its own numbering,
+starting at 1. Two pieces of evidence from inside:
+```
+$ readlink /proc/self/ns/pid
+pid:[4026533318]              # the host's own shell reports a different inode
+$ ls /proc | grep -c '^[0-9]'
+13
+$ cat /proc/loadavg
+2.03 1.59 1.40 6/2104 68222
+```
+Thirteen visible processes, while `loadavg` — which is not namespaced — reports 2104 running on the
+machine. PID 1 being `docker-init` rather than the host's init is the third giveaway.
+
+**52.** Something like:
+- Good for: any question about the running kernel or a running process, answered with tools you
+  already have and no special privileges.
+- Costs: nothing has a size, nothing is stable between reads, and the formats are undocumented
+  columns you must look up in `man 5 proc` every time.
+- The mistake to avoid: treating a `/proc` read as a fact rather than as an instantaneous sample —
+  and, in a container, treating what you see as the whole machine.
+
+
 ## Flags
 
 None. Chapter 2's flag is in `07-incident-02`.
