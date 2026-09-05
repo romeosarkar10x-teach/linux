@@ -160,3 +160,181 @@ vi mode is modal: `Esc` for command mode, `i` to insert, `0` for start of line, 
 
 **Check they switched back.** A shell left in vi mode makes every subsequent lesson feel broken, and
 the student will not connect it to this exercise.
+
+---
+
+## Added exercises 19–52
+
+Keystroke exercises cannot be shown as transcripts, so these give the answer and the reasoning; the
+lookups are shown as real output.
+
+### 19 — two ways to delete a word
+`Ctrl-W` is bound to `unix-word-rubout`: a word is anything between whitespace, so on
+`.../readings/strain-bay1.txt` it removes the **entire path**. `Alt-Backspace` is bound to
+`backward-kill-word`, whose idea of a word is letters and digits only, so it removes just `txt`,
+then `1`, then `bay`, and so on. Rule: `Ctrl-W` is whitespace-delimited, `Alt-Backspace` is
+alphanumeric-delimited. On paths you almost always want `Alt-Backspace`.
+
+### 20 — undo
+`Ctrl-_` (or `Ctrl-X Ctrl-U`). One press undoes one editing group — a whole `Ctrl-U` comes back at
+once, not character by character. Repeated presses walk further back, to the empty line.
+
+### 21 — the kill ring is a ring
+`Ctrl-Y` pastes the most recent kill. `Alt-Y` immediately afterwards *replaces* what was just
+yanked with the kill before it, and again for the one before that. Things come back
+most-recent-first; `Alt-Y` only works directly after a `Ctrl-Y` or another `Alt-Y`.
+
+### 23 — what the kill ring keeps
+`Ctrl-U` (`unix-line-discard`) cuts to the start; `Ctrl-K` (`kill-line`) cuts to the end. Both are
+kills, so both go on the ring and both can be brought back with `Ctrl-Y`. Nothing in this lesson
+deletes without saving except backspace and `Ctrl-D`.
+
+### 25 — quoted-insert
+`Ctrl-V` is `quoted-insert`: it takes the next keystroke literally instead of acting on it, so
+`Ctrl-V Ctrl-A` puts a literal control character on the line, displayed as `^A`. This is how you
+type a character the terminal would otherwise eat — a literal Tab, or an escape. It is also the
+honest way to see that `Ctrl-A` *is* a character being sent, not a message about a key.
+
+### 26 — where completion stops
+`readings/st` has five matches, so Tab completes only as far as they agree — `readings/st` is
+already the common prefix, so nothing appears to happen; a second Tab lists all five.
+`readings/str` has three (`strain-bay1`, `strain-bay2`, `strain-bay3`), and the common prefix now
+extends to `strain-bay`, so Tab fills that in and stops at the digit where they diverge. Completion
+never guesses: it inserts only what every match agrees on.
+
+### 27 — the last character
+A directory completes to `readings/` — trailing slash, no space, so you can keep going. A file
+completes to `strain-bay1.txt ` — trailing **space**, because the word is finished. That trailing
+character is readline telling you which kind of thing it found.
+
+### 28 — case
+Nothing completes because completion is case-sensitive by default and there is no `READINGS`. The
+setting is `completion-ignore-case`, currently `off`:
+```
+$ bind -v | grep completion-ignore-case
+set completion-ignore-case off
+```
+
+### 30 — completion and quoting
+Readline inserts the name with the space **escaped** — `my\ file.txt` — not quoted. That is the
+same protection 01/04's quoting gives you, applied for you: without it the space would split the
+name into two arguments. Completion knows about word splitting because it has to.
+
+### 32–33 — pulling arguments
+`Alt-.` gives the last argument of the previous line; pressing it again replaces that with the last
+argument of the line before, and so on backwards through history. The first argument of the previous
+line is `Alt-Ctrl-Y` (`yank-nth-arg`), which with no count gives the *first* argument.
+```
+$ bind -q insert-last-argument
+insert-last-argument can be invoked via "\e.", "\e_".
+```
+
+### 35–36 — predictions
+On `cat foo bar baz`: `Ctrl-W` leaves `cat foo bar `, then `cat foo `, then `cat `. On a cursor
+already at the end, `Ctrl-K` kills nothing — and, importantly, kills *nothing onto the ring*, so a
+following `Ctrl-Y` pastes whatever was killed previously, not an empty string. That surprise is
+worth having once.
+
+### 37–38 — the screen and the line
+`Ctrl-L` redraws the screen with your half-typed line intact; `clear` is a program, so it can only
+run once you press Enter, which means abandoning the line first. `Ctrl-C` abandons the line and gives
+a fresh prompt — and the abandoned line is **not** in history and not recoverable. `Ctrl-U` then
+`Ctrl-Y` is the recoverable version of the same gesture.
+
+### 39–40 — looking bindings up
+```
+$ bind -q undo
+undo can be invoked via "\C-x\C-u", "\C-_".
+$ bind -p | grep '"\\C-t"'
+"\C-t": transpose-chars
+```
+`bind -q NAME` goes from command to keys; `bind -p` prints every binding, which is the way from key
+to command. From a non-interactive shell:
+```
+$ bash -c 'bind -q undo'
+bash: line 1: bind: warning: line editing not enabled
+undo can be invoked via "\C-x\C-u", "\C-_".
+```
+The warning is 01/01's interactive-versus-non-interactive distinction showing through: readline is
+only attached when the shell is talking to a terminal. The answer is still correct because the
+bindings exist regardless; nothing is listening for them.
+
+### 41 — settings, not just keys
+`bind -v` prints readline variables with their current values. Three that change completion:
+```
+set completion-ignore-case off
+set show-all-if-ambiguous off
+set page-completions on
+```
+`show-all-if-ambiguous on` is the one that makes a single Tab list matches instead of two.
+
+### 42 — the editor escape hatch
+`Ctrl-X Ctrl-E` (`edit-and-execute-command`) opens the line in `$EDITOR` and runs it on save. Better
+than editing in place when the line is long enough that moving around it costs more than opening an
+editor — a multi-line loop, or a command you want to reread before running.
+
+### 44 — the other editor
+```
+$ set -o vi
+$ set -o emacs
+```
+In vi mode you start in insert mode; `Esc` leaves it, and then `0` goes to the start of the line —
+`Ctrl-A` no longer jumps anywhere. The readline variable behind it is `editing-mode`, default
+`emacs`. Switching back is `set -o emacs`; a probe who does not confirm the switch back has left the
+shell in a state that will confuse them later.
+
+### 45–46 — three lookups
+`Alt-?` (`possible-completions`) lists matches without inserting; `Alt-*` (`insert-completions`)
+inserts every match onto the line at once, which is how you build an argument list. `Alt-#`
+(`insert-comment`) prefixes the line with `#` and submits it: the line is not run but *is* stored in
+history, so you can recall and uncomment it later. It is the safe way to park a dangerous command
+you are not ready to run.
+
+### 47–48 — the command list
+```
+$ bind -l | wc -l
+173
+```
+Names never mentioned in this lesson include `revert-line` (undo every edit to a recalled history
+line), `quoted-insert`, and `shell-transpose-words`. Entries marked "not bound" — `menu-complete`,
+`copy-backward-word` and the whole `vi-*` family in emacs mode — exist because a command and a key
+are separate things: the command ships with the library, and whether a key reaches it is your
+configuration's business. `menu-complete` is a good example, since many people bind it deliberately.
+
+### 49 — unix words versus shell words
+`Ctrl-W` (`unix-word-rubout`) splits on whitespace only. `Alt-Ctrl-D` (`shell-kill-word`) and
+`Alt-Ctrl-B`/`Alt-Ctrl-F` use the **shell's** idea of a word, which respects quoting. On
+`deck-3-structural-strain-sampler-output-2187-05.log`, `Ctrl-W` and the shell-word commands both
+treat the whole hyphenated name as one word, while `Alt-Backspace` chews it up one hyphen-separated
+piece at a time. Three different word definitions live in the same line editor.
+
+### 50 — the startup file
+Per-user `~/.inputrc`, system-wide `/etc/inputrc`, named in `man bash` under READLINE. On this
+container **neither exists**:
+```
+$ ls -l /etc/inputrc ~/.inputrc
+ls: cannot access '/etc/inputrc': No such file or directory
+ls: cannot access '/home/cadet/.inputrc': No such file or directory
+```
+Everything you saw from `bind -v` is readline's compiled-in default. That is why the behaviour has
+been identical for every cadet on this posting.
+
+### 51 — who actually uses readline here
+```
+$ ldd /bin/bash | grep -i readline
+$ ldd "$(command -v openssl)" | grep -i readline
+$ ldd "$(command -v perl)" | grep -i readline
+```
+All three print nothing. Bash on this image has readline linked **statically**, and no other program
+installed here links it at all — there is no `python3`, `gdb` or `psql` on the station. So the claim
+"these keys work everywhere" is true of the wider world and not demonstrable on this box. The lesson
+is the check itself: `ldd` on the binary, before assuming a key will work.
+
+### 52 — too many matches
+```
+$ bind -v | grep page-completions
+set page-completions on
+```
+With it on, a long match list is paged through a pager rather than scrolled off the screen. Related
+is the "display all N possibilities?" prompt, whose threshold is the `completion-query-items`
+setting.
