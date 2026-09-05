@@ -72,3 +72,33 @@ A correct answer orders them: pathname expansion never produces the dotfile or t
 fix it); `rm`'s option parsing rejects the dash file (quotes do **not** fix it — `--` does). Any
 answer that claims quoting fixes more than one of the four has not separated the layers, which is
 the entire chapter.
+
+## Added exercises (51–52)
+
+**51.** The count must be **1**, and it must be reproduced in `scratch/`, not asserted from the
+sweep log. The five verdicts are the marking: `rm` ran and refused only for `-strain-05.log`; it ran
+and silently removed nothing for `05 readings.log`; it never saw the other three. A student who says
+"five failures, that is why five survived" has not run it and has the mechanism inverted — the whole
+lesson is that four of these never reached `rm` at all.
+
+Full marks also notice that `rm -f` returned 0 for the space file. The most dangerous case in the
+lab is the one that produced no output and no failure.
+
+**52.** Four parts, all required for a clean pass:
+
+- the phrase `named to survive the sweep`;
+- `dotglob` governs **membership** (off, the phrase loses `to`);
+- the sort of the expansion governs **order**, and it is the locale's collation — bash sorts glob
+  results unconditionally;
+- the byte ordering `-` < `.` < digits < `p`, checked against `LC_ALL=C`.
+
+The portability half is the distinction. A student who says "a different collation might reorder it"
+gets credit; one who works out that punctuation-ignoring collation in `en_US.UTF-8` puts
+`.handover-05.log` first, producing a phrase that is still a fluent sentence and still wrong, has
+understood why this is worse than the `dotglob` failure. The critique of
+`records/naming-convention.txt` must land on "the order the files sort" being a property of the
+reader rather than of the files, with a fix that puts the order in the data.
+
+**Red flag.** Any answer to 52 that reads the tags in the order the setup script created them, or in
+`ls -U` order, and reports the phrase anyway. The phrase coming out right does not mean the method
+was right, and this exercise exists to catch exactly that.

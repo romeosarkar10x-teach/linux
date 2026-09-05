@@ -190,3 +190,22 @@ week ago.
 
 **50.** The last stage says something about intent and then stops. Write down where it stops, and
 why a file in a lab is the wrong place to go further.
+
+## Dig — the record and the count
+
+**51.** The sweep log records `rm reported 1 failure` and five files survived by design. Reproduce
+`sweep.sh`'s loop in `scratch/` against a copy of the seven survivors plus a couple of ordinary
+`.log` and `.txt` files, and count how many times `rm` actually failed. Then account for the number:
+for each of the five designed survivors, say whether `rm` ran and refused, or never saw the name at
+all.
+
+*Done looks like:* the failure count, and five one-line verdicts.
+
+**52.** Read the five tags in glob order and you get the phrase. Do it deliberately: state which
+`shopt` setting the order depends on, which one the *membership* depends on, and what the sort order
+is doing with a leading `-`, a leading `.`, and a leading digit. Then say what would happen to the
+phrase if this lab were seeded on a machine with a different collation, and what the naming
+convention in `records/naming-convention.txt` would have had to say instead to be safe from that.
+
+*Done looks like:* the phrase, the two `shopt` answers, the ordering account, and the portability
+verdict.

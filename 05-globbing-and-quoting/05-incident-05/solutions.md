@@ -282,6 +282,72 @@ Stage 4 → word splitting (05/04).
 explicitly says the lab does not record who. A name in a lab file would be a fact the student did
 not derive, and the whole chapter is about not accepting expansions you did not perform yourself.
 
+## Added exercises 51–52
+
+**51.** Reproducing the loop against a copy of the seven survivors plus an ordinary `a.log` and
+`b.txt`:
+
+```
+$ for f in *.log *.txt *.bak; do rm -f $f || fail=$((fail+1)); done
+rm: invalid option -- 's'
+Try 'rm ./-strain-05.log' to remove the file '-strain-05.log'.
+Try 'rm --help' for more information.
+```
+
+Exactly **one** failure, which is what `sweep-2187-06-01.log` recorded. The five verdicts:
+
+- **`-strain-05.log`** — `rm` ran and refused. The glob matched it, the unquoted `$f` expanded to a
+  word beginning with `-`, and `rm` read `-strain-05.log` as a bundle of short options, dying on
+  `-s`. This is the one failure in the log. Note the exit status is non-zero even under `-f`: `-f`
+  suppresses *missing-file* complaints, not usage errors.
+- **`.handover-05.log`** — `rm` never saw it. `*.log` does not match a leading dot without `dotglob`,
+  so the name was never in the loop's word list.
+- **`05 readings.log`** — `rm` ran and succeeded, on the wrong thing. The glob produced one word
+  containing a space; unquoted `$f` then split it into `05` and `readings.log`, neither of which
+  exists, and `rm -f` removed nothing and said nothing. Status 0. This is the quiet one.
+- **`panel-03.log~`**, **`panel-09.log~`** — never seen. `*.log` requires the name to *end* in
+  `.log`; these end in `~`. No pattern in the sweep matches them.
+
+So of the five, one produced an error, one produced a silent no-op, and three were never candidates.
+The log's "1 failure" is honest and almost uninformative: four of the five survivals left no trace in
+it at all, which is the point. A housekeeping script that cannot report what it *skipped* has told
+you nothing about what is still there.
+
+**52.** The phrase, read in glob order:
+
+```
+-strain-05.log     # tag: named
+.handover-05.log   # tag: to
+05 readings.log    # tag: survive
+panel-03.log~      # tag: the
+panel-09.log~      # tag: sweep
+```
+
+`named to survive the sweep`.
+
+- **Membership** depends on `dotglob`. With it off, `*.log*` yields four files and the phrase reads
+  `named survive the sweep` — a missing word, which is exactly the loud failure the naming convention
+  was designed to produce.
+- **Order** depends on the shell's sort of the expansion, which is the collating order of the current
+  locale. Bash sorts glob results; you never asked it to and cannot switch it off.
+- The ordering itself: `-` (0x2D) sorts before `.` (0x2E), which sorts before the digits `0`–`9`
+  (0x30–), which sort before lowercase `p`. Under `LC_ALL=C` that is plain byte order. In this
+  container `LANG` is `C.UTF-8`, which collates by byte as well, so the two agree — verify with
+  `( LC_ALL=C; for f in *.log*; do echo "[$f]"; done )` against the same loop without it.
+
+**Portability.** Under a locale such as `en_US.UTF-8`, glibc's collation ignores punctuation at the
+first comparison level, so `-strain-05.log` and `.handover-05.log` are compared roughly as
+`strain05log` and `handover05log` — and `handover` sorts first. The phrase becomes
+`to named survive the sweep`, or worse. The set is still complete; only the reading is wrong, and
+nothing announces it. That is a nastier failure than the missing word, because it looks like a
+sentence.
+
+`records/naming-convention.txt` says "the order the files sort", which is the flaw: it names an
+order that is a property of the reader's environment rather than of the files. To be safe it would
+have to fix the order in the data — a numbered tag (`# tag: 1 named`), or an explicit statement that
+the order is byte order and must be read with `LC_ALL=C`. Any convention that depends on a default
+is a convention that will be read differently by two people who both did it right.
+
 ## Notes for the authoring/tutor agent
 
 - The one-glob constraint is the lesson. Two globs, a `find`, or a hand-typed list all produce the
