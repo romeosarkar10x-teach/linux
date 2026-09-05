@@ -266,6 +266,132 @@ trailing newlines, so `tac` receives the **empty string** as its separator and p
 unchanged — a silent no-op that looks like "`-s` does not work". A student who reports the file came
 out unchanged and then finds out why has done better than one who got it right first time.
 
+## Added exercises 40–52
+
+**40.** With two or more files `head` prints a header per file and a blank line between blocks:
+
+```
+==> logs/panel-07.log <==
+2187-05-17 04:02  panel-07  power on
+2187-05-17 04:03  panel-07  self-test start
+
+==> notes/tabs.txt <==
+deck	bay	strain
+3	4	0.41
+```
+
+The blank line comes *before* each header after the first, not after the block. `head -q` suppresses
+the headers; `head -v` forces one even for a single file (`==> logs/panel-07.log <==`).
+
+**41.** `-L` is the length of the longest line, in display columns.
+
+```
+  314 logs/deck3-strain.csv
+   47 logs/comms-0517.log
+  314 total
+```
+
+314 is the number quoted in exercise 24: on an 80-column terminal that row occupies four screen
+lines when `less` wraps it, which is why `-S` is worth having. Note the `total` line reports the
+largest of the maxima, not a sum — the only `wc` field for which that is true.
+
+**42.** `cat -n` numbers all 11 lines and ends at 11; `cat -b` numbers only the two non-blank lines,
+so its highest number is 2 while the output still has 11 lines:
+
+```
+     1	before
+       (nine blank lines, unnumbered)
+     2	after
+```
+
+`nl` defaults to `-b t` — number non-empty lines only — which is `cat -b`, and that is exactly the
+six-line disagreement of exercise 11 and the `-b a` fix of exercise 12.
+
+**43.** `wc -c` is 43, `wc -m` is 42. `-c` counts bytes, `-m` counts characters in the current
+locale, which is UTF-8. The file's `\351` is a Latin-1 é: a legal byte, but not a legal UTF-8
+sequence on its own. `wc -m` does not count it as a character, so the character count comes out one
+short of the byte count. Every other byte in the file is ASCII, where the two counts agree.
+
+**44.** `man cat`: `-A` is equivalent to `-vET`. `cat -vET notes/tabs.txt` gives byte-identical
+output to `cat -A notes/tabs.txt`:
+
+```
+deck^Ibay^Istrain$
+3^I4^I0.41$
+```
+
+`-T` does the tab (`^I`), `-E` the line ends (`$`), `-v` the non-printing rest. So `cat -e` from
+exercise 7 is `-vE` and `cat -t` is `-vT`.
+
+**45.** `tail -c 20 logs/panel-07.log` prints the last 20 bytes — `:03  panel-07  idle` and its
+newline, a mid-line start. `tail -c +5470 logs/comms-0517.log` prints from byte 5470 *to the end*,
+which is `shake ok`. Same rule as exercise 18: a bare number is a count from the end, `+N` is an
+offset from the beginning.
+
+**46.**
+
+```
+cat: logs: Is a directory        # status 1
+cat: notes/nope.txt: No such file or directory   # status 1
+```
+
+Both are 1. The interesting half of the prediction is the first: `cat` does not refuse to open a
+directory — the `open` succeeds — it refuses to `read` one, because on Linux reading a directory
+through an ordinary file descriptor returns `EISDIR`. Contrast Chapter 3, where `cat` on a device
+node or FIFO behaved differently again.
+
+**47.** Both run straight through and end at 24. `cat -n` counts lines of the output stream, so
+concatenation is invisible to it. `nl` is the surprise: it has a `-p` option precisely because it
+would otherwise restart at each *page*, but multiple file arguments are treated as one continuous
+document, so it also reaches 24.
+
+**48.** `wc -c f` reports **0**. The shell sets up the redirection before it execs `cat`: `> f`
+truncates the file to zero length, and only then does `cat` open the same now-empty file twice and
+copy nothing. This is the standard reason `cmd file > file` is never a way to edit a file in place —
+the data is gone before the program that was supposed to read it starts.
+
+**49.** 118. The file has six blank lines (exercise 13); three of them are isolated (17, 43, 88) and
+three are consecutive (60–62). `-s` squeezes each *run* to one line, so only the run is affected and
+it loses two lines: 120 − 2 = 118.
+
+**50.** The round trip succeeds — `cmp` prints nothing — and `od -c` on the plain `unexpand -t 8`
+output shows the interior tabs restored (`d e c k \t b a y \t s t r a i n \n`). With
+`--first-only`, only leading blanks would be converted, and since this file has none, the tabs stay
+spaces:
+
+```
+0000000   d   e   c   k                   b   a   y                    
+```
+
+GNU `unexpand` converts only leading blanks by default, but `-t` implies `-a` (convert all runs of
+blanks), which is what made the round trip work. `--first-only` cancels that. The leading-only
+default is the safer one for source code: converting interior runs of spaces to tabs silently
+changes aligned comments and string literals.
+
+**51.**
+
+```
+less -N -X +/'crew 4242' logs/roster.txt
+```
+
+`-N` shows line numbers in the left margin, `+/pattern` runs a forward search at startup and lands on
+the first match (line 4242), and `-X` disables the terminal's alternate-screen switch, so after `q`
+the last screenful of the file stays on the terminal instead of being wiped. `-X` is the option that
+makes `less` behave like `cat` for the purpose of leaving evidence in your scrollback.
+
+**52.** `M-` is the high bit. `cat -v` clears bit 7 and prints `M-` followed by whatever the
+remaining seven bits would print as: `0xE9 − 0x80 = 0x69 = i`, hence `M-i`. So `0xE0` becomes
+`M-`+`0x60` = `M-\``, and `0x80` becomes `M-` plus `0x00`, which is itself a control character, so
+`cat -v` applies the caret notation on top: `M-^@`.
+
+```
+$ printf '\340\200\n' | cat -v
+M-`M-^@
+```
+
+A byte that is both high-bit and control therefore gets both notations, `M-^X` — the two encodings
+compose rather than one overriding the other.
+
 ## Notes for the authoring/tutor agent
 
 - Exercise 29 needs two terminals and is the most valuable exercise in the lesson. If a student

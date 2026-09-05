@@ -201,3 +201,84 @@ separated from the text by ` | `, counting in tens. One command.
 `logs/comms-0517.log` by *paragraph* — runs of text between blank lines reversed as units, with each
 unit's internal line order left intact. Report the command, and say whether the result is exactly
 what you wanted; if it is not, say precisely what `-s` did instead.
+
+---
+
+## Core — headers, counts and the bytes underneath
+
+**40.** `head -n 2 logs/panel-07.log notes/tabs.txt`. With more than one file `head` prints something
+it does not print for one file. Quote it exactly, including what separates the two blocks. Then get
+the same two files' output with no headers at all, and then get the header for a *single* file.
+
+**41.** `wc -L logs/deck3-strain.csv logs/comms-0517.log`. Say what `-L` counts, report both numbers,
+and connect the first one to what you saw in exercise 24.
+
+**42.** `cat -n notes/blank-run.txt` and `cat -b notes/blank-run.txt`. Report both line counts and
+both highest numbers. Then say which of `cat`'s two numbering flags `nl` behaves like by default,
+and tie that back to exercises 11 and 12.
+
+**43.** `wc -c notes/mixed.txt` and `wc -m notes/mixed.txt` disagree by one. Explain the disagreement
+using what exercise 10 showed you about that file's contents.
+
+**44.** `cat -A notes/crlf.txt` is documented as equivalent to three other flags used together. Find
+them in `man cat`, run the equivalent form on `notes/tabs.txt`, and confirm the output is identical
+to `cat -A`. Say which of the three does the work for the tab.
+
+**45.** `tail -c 20 logs/panel-07.log` and `tail -c +5470 logs/comms-0517.log`. One counts from the
+end, one counts from the beginning. Report both outputs and say which is which — the `+` rule is the
+same one you met in exercise 18, applied to bytes.
+
+---
+
+## Experiment — predict before you run
+
+Prediction first, in writing. The wrong part of the prediction is the exercise.
+
+**46.** **Predict first.** Predict what `cat logs` does — `logs` is a directory, not a file — and
+what `cat notes/nope.txt` does. Predict both messages and both exit statuses before you run either.
+Check the statuses with `echo $?`.
+
+**47.** **Predict first.** `cat -n logs/panel-07.log logs/panel-07.log | tail -1` and
+`nl logs/panel-07.log logs/panel-07.log | tail -1`. Predict, for each, whether the numbering restarts
+at the second file or runs straight through. Then run both.
+
+**48.** **Predict first.** In a scratch directory of your own — **not** in the lab:
+
+```
+mkdir -p /tmp/cat-test && cd /tmp/cat-test
+printf 'a\nb\n' > f
+cat f f > f
+wc -c f
+```
+
+Predict the byte count before you run it. Then explain what the shell did to `f` and *when* it did
+it, relative to `cat` starting. Then `cd` back to the lab.
+
+**49.** **Predict first.** `cat -s logs/comms-0517.log | wc -l`. You know from `setup.sh`-free
+investigation (exercise 13) how many blank lines the file has and, from exercise 11, that three of
+them are consecutive. Predict the number `-s` will produce before you run it.
+
+---
+
+## Stretch
+
+**50.** `expand` turns tabs into spaces and `unexpand` turns spaces back into tabs. Run
+`expand -t 8 notes/tabs.txt > /tmp/e.txt`, then `unexpand -t 8 /tmp/e.txt | cmp - notes/tabs.txt`.
+The round trip succeeds. Now run the `unexpand` again with `--first-only` and look at the output with
+`od -c`. Explain what `-t` quietly turned on that `--first-only` turns back off, and why the default
+is the safer one for source code.
+
+**51.** `less` takes options on the command line as well as inside the session. Open
+`logs/roster.txt` with line numbers shown, no screen clear on exit, and the cursor already at the
+first match for `crew 4242`, all in one invocation. Report the command and what stayed on your
+terminal after `q`.
+
+---
+
+## Dig
+
+**52.** `cat -v` printed the accented byte in `notes/mixed.txt` as `M-i`. That is not a random
+choice: `M-` means "meta", and the letter after it encodes the rest of the byte. Work out the rule
+from the one example, then predict what `cat -v` prints for the bytes `0xE0` and `0x80`, and check
+with `printf '\340\200\n' | cat -v`. Say what `cat -v` does with a byte that has the high bit set and
+also happens to be a control character.

@@ -150,6 +150,48 @@ tried `"$(printf '\n\n')"`, got the file back unchanged, and worked out that com
 stripped the newlines so `tac` was handed an empty separator. *Reject:* reporting "`-s` does nothing"
 with no investigation.
 
+**40.** *Accept:* the `==> file <==` headers quoted with the blank line between blocks, plus `head -q`
+and `head -v`. *Reject:* describing the header without reproducing its exact punctuation.
+
+**41.** *Accept:* 314 and 47, `-L` identified as longest-line length, and the link to the wrapping in
+exercise 24. *Distinction:* notices the `total` line is a maximum, not a sum.
+
+**42.** *Accept:* 11 lines from both, highest number 11 for `-n` and 2 for `-b`, and `nl`'s default
+identified as `cat -b` behaviour. *Reject:* claiming `-b` removed the blank lines — it only stops
+numbering them.
+
+**43.** *Accept:* 43 versus 42, explained as bytes versus locale characters with the invalid UTF-8
+`\351` named. *Reject:* "the BEL is not a character" — the BEL counts fine.
+
+**44.** *Accept:* `-A` = `-vET`, identical output demonstrated, `-T` named for the tab.
+*Also accept:* noting `-e` is `-vE` and `-t` is `-vT`.
+
+**45.** *Accept:* both outputs quoted and the `+` identified as an offset from the start, matching
+exercise 18. *Reject:* reading `-c +5470` as "the last 5470 bytes".
+
+**46.** *Accept:* both messages verbatim and status 1 for both. *Distinction:* explains that the
+`open` of a directory succeeds and the `read` fails with `EISDIR`.
+
+**47.** *Accept:* 24 from both, with the prediction recorded first. *Distinction:* checked whether
+`nl` restarts and found it does not.
+
+**48.** *Accept:* 0 bytes, with the truncation attributed to the shell setting up `> f` before `cat`
+runs. *Reject:* running it inside the lab tree. *Red flag:* concluding `cat` deleted the data.
+
+**49.** *Accept:* 118, derived as 120 minus the two lines lost from the single run of three.
+*Reject:* 114 (squeezing all six blanks away) — `-s` collapses runs, it does not delete blanks.
+
+**50.** *Accept:* `cmp` silent, and `-t` identified as implying `-a` with `--first-only` cancelling
+it. *Distinction:* the source-code argument for the leading-only default.
+
+**51.** *Accept:* `less -N -X +/'crew 4242' logs/roster.txt` or an equivalent ordering, with `-X`
+explained as leaving the text on screen after `q`. *Accept also:* `-n` mistakenly tried first and
+corrected.
+
+**52.** *Accept:* the `M-` = high-bit rule derived, `M-\`` predicted for `0xE0`, and `M-^@` for
+`0x80` with the two notations described as composing. *Distinction:* checks a third byte such as
+`0x98` and gets `M-^X`.
+
 ---
 
 ## Roll-up
