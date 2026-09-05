@@ -46,3 +46,32 @@ has solved the puzzle and missed the chapter. Send them back to exercise 2.
 
 A student who diagnosed the stream loss but never noticed p-07 has answered cass and missed the deck
 log. Ask them to rank the clamps by panel and read `notes/clamping.txt` again.
+
+## Added exercise (52)
+
+**The three faults.** All three must be named, with the `echo`/`echo` truncation check actually run:
+(1) `>` truncates a single fixed path, so each night destroys the previous night's warnings — not
+"the warnings piled up"; (2) `/tmp` is cleared and world-writable, so even the last night is not
+durable and its absence looks normal; (3) the report path is dated and the error path is not, so
+warnings cannot be matched to the night that produced them. Fault 3 is the one students skip; it is
+the one that answers cass.
+
+**The unwritable destination — must pass.** The quoted output must show `Permission denied` at
+status 1 **and no output from the command itself**, and the student must state explicitly that the
+command never ran. An answer that says "the errors went missing" has misread it: there were no
+errors, because there was no process. Credit the link to a missing file in `logs/` being invisible
+among fourteen months of nominal reports.
+
+**The rewrite.** Any line that keeps both streams, per night, outside `/tmp`, and appends rather than
+truncates. The defence matters more than the choice: one file or two is arguable, but the argument
+must engage with interleaving and buffering from exercise 11 rather than asserting a preference. A
+student who picks one file and defends it on those grounds passes; a student who picks two and cannot
+say why passes with notes.
+
+`&>`/`&>>` must be flagged as bash-only with `>> file 2>&1` given as the portable form, in that
+order.
+
+**Red flags.** Claiming the warnings accumulated in `/tmp/summarise.err` and were merely never read —
+they were overwritten nightly, and the truncation check disproves it. Proposing to fix the wrapper by
+adding `2>&1` into the report file, which solves the retention problem by wrecking the report. Any
+answer that treats the unwritable-destination case as a partial run.

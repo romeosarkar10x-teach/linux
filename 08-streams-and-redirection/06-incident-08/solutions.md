@@ -232,3 +232,83 @@ bin/verify p-03 >/dev/null 2>&1 && echo "confirmed"   # silent, and $? is 1
 `&&`. The Chapter 8 skill the chain never used is `tee` — every stage wanted one destination, and
 `tee` exists to give a stream two. Adding it anywhere would have been an extra copy of something
 already in front of you.
+
+## Added exercise 52
+
+**52.** The line is:
+
+```
+bin/summarise > "$OUT" 2>/tmp/summarise.err
+```
+
+**Fault 1 — one fixed path, truncated nightly.** `>` truncates. Tonight's run empties the file before
+`summarise` writes a byte, so at any moment `/tmp/summarise.err` holds the warnings of the most
+recent run and nothing else. Fourteen months of warnings were not lost gradually; each night's were
+destroyed by the next night's. Checked in `scratch/`:
+
+```
+$ echo a > e ; echo b > e ; cat e
+b
+$ echo a > e2 ; echo b >> e2 ; cat e2
+a
+b
+```
+
+**Fault 2 — `/tmp`.** Even that one surviving night does not survive a reboot: `/tmp` is cleared, on
+many systems at boot and on some continuously by a tmpfiles cleaner, and on this container it is not
+part of anything anybody backs up. A fixed path in `logs/` would at least have left one night's
+warnings to be found; a fixed path in `/tmp` leaves a file whose absence is normal, so nobody ever
+asked where it went. `/tmp` is also world-writable, which makes it the wrong place to put anything
+you would later want to treat as a record.
+
+**Fault 3 — asymmetric naming.** `logs/summarise-2187-06-13.log` is dated and `/tmp/summarise.err` is
+not. From the reports alone you can reconstruct *which nights ran* and what each said — that is what
+made "fourteen months of nominal" a sentence anybody could say. What you cannot reconstruct is which
+night any warning belongs to, because there is only ever one error file and it carries no date. Even
+if every night's errors had been appended to one undated file, you would have the text and not the
+night. A record that cannot be matched to its occasion is close to useless for exactly the question
+cass asked.
+
+**The failure nobody plans for:**
+
+```
+$ mkdir scratch/ro; chmod 500 scratch/ro
+$ bash -c 'ls /nonexistent 2> scratch/ro/x.err'
+bash: line 1: scratch/ro/x.err: Permission denied
+$ echo $?
+1
+```
+
+**The command did not run.** Note what is *not* in that output: `ls`'s own
+`cannot access '/nonexistent'`. The shell sets up redirections before it execs the command, so when
+opening the destination fails, there is no command — the shell reports the open error on its own fd 2
+and exits 1. Applied to the wrapper: if `/tmp/summarise.err` had ever become unwritable, `summarise`
+would not have run, `"$OUT"` would not have been created, and the only trace would have been one line
+of shell diagnostic going wherever the nightly job's own fd 2 went, which is nowhere. The `logs/`
+directory would simply be missing a night, and a missing night in a directory of "all nominal"
+reports is precisely the thing nobody looks for. This is the same shape as the incident itself: the
+absence of a complaint read as the absence of a problem.
+
+**The rewrite.** Two files, both dated, both in `logs/`, appended not truncated:
+
+```
+bin/summarise > "logs/summarise-$DATE.log" 2>> "logs/summarise-$DATE.err"
+```
+
+Two files rather than one is the defensible choice here for the reason exercise 11 established: the
+report is a document with a shape — header, table, footer — and merging a warning stream into it
+destroys that shape at unpredictable points, because the two streams are buffered differently and
+their interleaving is not reproducible. You would have a report you could no longer parse and a
+warning list you could no longer read, in exchange for an ordering you cannot trust anyway. Keep them
+apart, name them from the same `$DATE`, and the pairing is in the filenames where you can see it.
+
+The case for one file is real and worth stating: a single `&>>` cannot get out of step, and if the
+warnings referred to specific lines of the report their position would be evidence. Neither applies —
+these warnings name panels, not lines.
+
+`&>` and `&>>` are bash; under `dash` they are a syntax error. The portable spelling is
+`>> file 2>&1`, in that order, and the order is the whole content of lesson 02.
+
+A stricter version worth mentioning: `set -e` in the wrapper would at least have turned the
+unwritable-destination case into a job that failed loudly instead of one that quietly produced
+nothing.

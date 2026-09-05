@@ -186,3 +186,31 @@ that the chain stays quiet.
 
 **51.** Name the four skills the four stages used, one each. Then name the Chapter 8 skill the chain
 did not use, and say why it would have been the wrong tool at every stage.
+
+---
+
+## Dig — fixing the wrapper
+
+**52.** `bin/nightly` has three separate faults in one line, and you have now met all of them.
+Copy the wrapper into `scratch/` and work on the copy.
+
+First, name them. The destination for fd 2 is a single fixed path — say what happens to last night's
+warnings when tonight's run starts, and check it in `scratch/` with two `echo`s. Then say why that
+path being under `/tmp` makes it worse than the same mistake made anywhere else. Third, the report
+path carries the date and the error path does not: say what you can and cannot reconstruct from a
+directory of files named that way.
+
+Second, prove the failure mode nobody plans for. Make the error destination unwritable —
+`mkdir scratch/ro; chmod 500 scratch/ro` — and run something that writes to both streams with its
+fd 2 redirected into `scratch/ro/x.err`. Quote the message and the status, and answer the question
+that matters: **did the command run at all?** Say what fourteen months of that would have produced in
+`logs/`, and why nobody would have noticed.
+
+Third, rewrite the line so that both streams are kept, per night, in a way that survives a reboot and
+lets you match a report to its warnings. State whether you kept them in one file or two and defend
+the choice against the other one — the argument about interleaving from exercise 11 is the one to
+make. If you use `&>` or `&>>`, say what you would write instead in a script that must run under
+`dash`.
+
+*Done looks like:* three faults named with evidence, the unwritable-destination run quoted with its
+status and the answer to "did it run", and the rewritten line with its defence.
